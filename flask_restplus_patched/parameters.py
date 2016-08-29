@@ -32,7 +32,8 @@ class PostFormParameters(Parameters):
         for field in itervalues(self.fields):
             if field.dump_only:
                 continue
-            field.metadata['location'] = 'form'
+            if 'location' not in field.metadata:
+                field.metadata['location'] = 'form'
 
 
 class PatchJSONParameters(Parameters):

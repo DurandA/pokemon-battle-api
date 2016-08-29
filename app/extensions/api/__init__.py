@@ -15,7 +15,7 @@ from .http_exceptions import abort
 
 api_v1 = Api( # pylint: disable=invalid-name
     version='1.0',
-    title="Flask-RESTplus Example API",
+    title="Pokemon Battle API",
     description="Real-life example RESTful API server implementation using Flask-RESTplus",
 )
 

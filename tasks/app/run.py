@@ -35,9 +35,10 @@ def run(
             )
 
     from app import create_app
-    create_app(
+    app = create_app(
         flask_config='development' if development else 'production'
-    ).run(
-        host=host,
-        port=port
-    )
+    )#.run(
+    #   host=host,
+    #   port=port
+    # )
+    app.extensions['socketio'].run(app, host=host, port=port)

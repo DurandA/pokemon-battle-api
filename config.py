@@ -7,7 +7,7 @@ class BaseConfig(object):
 
     PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///%s' % (os.path.join(PROJECT_ROOT, "example.db"))
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///%s' % (os.path.join(PROJECT_ROOT, "pokedex.sqlite"))
 
     DEBUG = False
 
@@ -31,7 +31,12 @@ class BaseConfig(object):
         'auth',
 
         'users',
-        'teams',
+        #'groups',
+        #'players',
+        'battles',
+        'trainers',
+        'pokemon_types',
+        'pokemons',
 
         'api',
     )

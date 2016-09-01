@@ -29,6 +29,7 @@ class Pokemons(Resource):
     Manipulations with sports.
     """
 
+    @api.parameters(PaginationParameters())
     @api.response(schemas.BasePokemonSchema(many=True))
     def get(self):
         """
@@ -37,12 +38,7 @@ class Pokemons(Resource):
         Returns a list of pokemons starting from ``offset`` limited by ``limit``
         parameter.
         """
-        return Pokemon.query
-        for pokemon in db.session.query(Pokemon):
-            print(pokemon.identifier)
-            #print(pokemon.pokemon_types_collection)
-            print(pokemon.types_collection)
-        return db.session.query(Pokemon)
+        return Pokemon.query.offset(args['offset']).limit(args['limit'])
 
 
 @api.route('/<int:pokemon_id>')

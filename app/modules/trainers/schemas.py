@@ -22,8 +22,7 @@ class BaseTrainerSchema(ModelSchema):
         model = Trainer
         fields = (
             Trainer.id.key,
-            Trainer.first_name.key,
-            Trainer.last_name.key,
+            Trainer.name.key,
             Trainer.gender.key,
         )
         dump_only = (

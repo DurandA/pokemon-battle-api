@@ -1,27 +1,40 @@
-import asyncio
 from . import celery
 
 from flask_socketio import SocketIO
 
+from app.modules.battles.models import Battle
+from app.modules.battles.schemas import DetailedBattleSchema
+
+from io import StringIO
+import requests
+import time
+import re
+
+
 socketio = SocketIO(message_queue='redis://')
 
-print(__name__)
-
-async def battle_events():
-    for i in range(100):
-        print('Worker async event %i' %i)
-        socketio.emit('message',
-                          {'data': 'Worker async event %i' %i},
-                          namespace='/test')
-        await asyncio.sleep(1)
 
 @celery.task()
-def broadcast_battle(battle_id):
-    print('broadcasting battle...')
-    event_loop = asyncio.get_event_loop()
-    socketio.emit('message',
-                      {'data': 'Worker generated event'},
-                      namespace='/test')
-    event_loop.run_until_complete(
-        battle_events()
-    )
+def broadcast_battle(battle_id, battle):
+    payload = {}
+
+    # r = requests.get("http://127.0.0.1:5000/api/v1/battles/{0}".format(battle_id))
+    # battle = r.json()
+
+    # for tkey in ['team1', 'team2']:
+    #     team = battle[tkey]
+    #     for pokemon in team['pokemons']:
+    #         payload['%s[]' % tkey] = pokemon['id']
+
+    r = requests.post("http://127.0.0.1:4000/fight", json=battle)
+    finished = False
+    result = StringIO(r.text)
+
+    for line in result:
+        event = line.strip()
+        if event:
+            socketio.send(event, namespace='/battles/{0}'.format(battle_id))
+            match = re.match('(.*?) defeated (.*?)!', event)
+            if match:
+                print('%s won!' % match.group(1))
+            time.sleep(1)

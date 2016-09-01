@@ -14,18 +14,20 @@ from flask_sockets import Sockets
 import sqlalchemy
 #from flask_socketio import emit
 
-from app.extensions.api import Namespace, abort, http_exceptions
+from app.extensions.api import Namespace, abort, http_exceptions, api_v1 as api
 from app.extensions.api.parameters import PaginationParameters
 
-from . import schemas, parameters
-from .models import db, Battle, Opponent, Location
+from . import schemas, parameters, ns
+from .models import db, Battle, Team, Location
 from app.tasks import broadcast_battle
 from app.modules.pokemons.models import Pokemon
 from app.modules.pokemons.schemas import BasePokemonSchema
 from app.modules.trainers.schemas import DetailedTrainerSchema
 
+import dateutil.parser
+
 log = logging.getLogger(__name__)
-api = Namespace('battles', description="Battles")
+
 ws = Blueprint(r'ws', __name__)
 
 # @ws.route('/echo')
@@ -46,14 +48,15 @@ ws = Blueprint(r'ws', __name__)
 #                       {'data': 'Server generated event'},
 #                       namespace='/battles')
 
-@api.route('/')
+
+@ns.route('/')
 class Battles(Resource):
     """
     Manipulations with battles.
     """
 
-    @api.parameters(PaginationParameters())
-    @api.response(schemas.BaseBattleSchema(many=True))
+    @ns.parameters(PaginationParameters())
+    @ns.response(schemas.BaseBattleSchema(many=True))
     def get(self, args):
         """
         List of battles.
@@ -61,32 +64,26 @@ class Battles(Resource):
         Returns a list of battlees starting from ``offset`` limited by ``limit``
         parameter.
         """
-        broadcast_battle.delay(1)
-        print('delayed broadcast_battle')
         return Battle.query.offset(args['offset']).limit(args['limit'])
 
-    @api.parameters(parameters.CreateBattleParameters())
-    @api.response(schemas.BaseBattleSchema())
-    @api.response(code=http_exceptions.Conflict.code)
-    def post(self, args):
+    @ns.expect(parameters.CreateBattleParameters)
+    @ns.response(schemas.BaseBattleSchema())
+    @ns.response(code=http_exceptions.Conflict.code)
+    def post(self):
         """
         Create a new battle.
         """
+        battle_data = api.payload
         try:
             try:
-                t1 = Opponent(trainer_id=args.pop("trainer1_id"))
-                t2 = Opponent(trainer_id=args.pop("trainer2_id"))
-                for pokemon_ids, team in [
-                    (args.pop("opponent1_pokemons"), t1),
-                    (args.pop("opponent2_pokemons"), t2)]:
-                    for pokemon_id in pokemon_ids:
-                        p = Pokemon.query.get(pokemon_id)
-                        team.pokemons.append(p)
-                battle = Battle(**args, opponent1=t1, opponent2=t2)
+                battle, _ = schemas.CreateBattleSchema().load(battle_data)
+                print(battle)
             except ValueError as exception:
                 abort(code=http_exceptions.Conflict.code, message=str(exception))
-            db.session.add(t1)
-            db.session.add(t2)
+            if battle.location is not None:
+                db.session.add(battle.location)
+            db.session.add(battle.team1)
+            db.session.add(battle.team2)
             db.session.add(battle)
             try:
                 db.session.commit()
@@ -97,8 +94,8 @@ class Battles(Resource):
         return battle
 
 
-@api.route('/<int:battle_id>')
-@api.response(
+@ns.route('/<int:battle_id>')
+@ns.response(
     code=http_exceptions.NotFound.code,
     description="Battle not found.",
 )
@@ -107,16 +104,22 @@ class BattleByID(Resource):
     Manipulations with a specific battle.
     """
 
-    @api.resolve_object_by_model(Battle, 'battle')
-    @api.response(schemas.DetailedBattleSchema())
+    @ns.resolve_object_by_model(Battle, 'battle')
+    @ns.response(schemas.DetailedBattleSchema())
     def get(self, battle):
         """
         Get battle details by ID.
         """
+        #battle = Battle.query.options(db.joinedload('team1')).get_or_404(battle.id)
+        broadcast_battle.delay(
+            battle.id,
+            schemas.BattleAPISchema().dump(battle).data
+        )
+        print('delayed broadcast_battle')
         return battle
 
-    @api.resolve_object_by_model(Battle, 'battle')
-    @api.response(code=http_exceptions.Conflict.code)
+    @ns.resolve_object_by_model(Battle, 'battle')
+    @ns.response(code=http_exceptions.Conflict.code)
     def delete(self, battle):
         """
         Delete a battle by ID.
@@ -133,26 +136,26 @@ class BattleByID(Resource):
             )
         return None
 
-    @api.route('/<int:battle_id>/location')
+    @ns.route('/<int:battle_id>/location')
     class Location(Resource):
-        @api.resolve_object_by_model(Battle, 'battle')
-        @api.response(schemas.LocationSchema())
+        @ns.resolve_object_by_model(Battle, 'battle')
+        @ns.response(schemas.LocationSchema())
         def get(self, battle):
             """
             Get battle location.
             """
             return battle.location
 
-        @api.resolve_object_by_model(Battle, 'battle')
-        @api.parameters(parameters.LocationParameters())
-        @api.response(schemas.LocationSchema())
-        def put(self, args, battle):
+        @ns.resolve_object_by_model(Battle, 'battle')
+        @ns.expect(parameters.LocationParameters, validate=True)
+        @ns.response(schemas.LocationSchema())
+        def put(self, battle):
             """
             Set battle location.
             """
             try:
                 try:
-                    location = Location(**args)
+                    location =  if battle.location else Location(**api.payload)
                     battle.location = location
                 except ValueError as exception:
                     abort(code=http_exceptions.Conflict.code, message=str(exception))
@@ -167,62 +170,61 @@ class BattleByID(Resource):
             return location
 
 
-@api.route('/<int:battle_id>/team<int:team_num>')
-@api.doc(responses={404: 'Battle not found'}, params={'team_num': '[1-2] (one of both teams)'})
-class Opponents(Resource):
+@ns.route('/<int:battle_id>/team<int:team_num>')
+@ns.doc(responses={404: 'Battle not found'}, params={'team_num': '[1-2] (one of both teams)'})
+class Teams(Resource):
 
     @staticmethod
-    def get_battle_opponent(battle, team_num):
+    def get_battle_team(battle, team_num):
         try:
-            return getattr(battle, "opponent%i" % team_num)
+            return getattr(battle, "team%i" % team_num)
         except AttributeError:
             abort(404)
 
-    @api.resolve_object_by_model(Battle, 'battle')
-    #@api.doc(params={'team_num': '[1-2] (one of both teams)'})
-    #@api.parameters(parameters.OpponentParameters())
-    @api.response(schemas.OpponentSchema())
+    @ns.resolve_object_by_model(Battle, 'battle')
+    #@ns.doc(params={'team_num': '[1-2] (one of both teams)'})
+    #@ns.parameters(parameters.TeamNumParameters())
+    @ns.response(schemas.TeamSchema())
     def get(self, battle, team_num):
         """
         Get one of both teams
         """
-        return self.get_battle_opponent(battle, team_num)
+        return self.get_battle_team(battle, team_num)
 
-@api.route('/<int:battle_id>/team<int:team_num>/trainer')
+@ns.route('/<int:battle_id>/team<int:team_num>/trainer')
 class Trainer(Resource):
-    @api.resolve_object_by_model(Battle, 'battle')
-    @api.response(DetailedTrainerSchema())
+    @ns.resolve_object_by_model(Battle, 'battle')
+    @ns.response(DetailedTrainerSchema())
     def get(self, battle, team_num):
         """
         Get trainer from a team
         """
-        return Opponents.get_battle_opponent(battle, team_num).trainer
+        return Teams.get_battle_team(battle, team_num).trainer
 
-@api.route('/<int:battle_id>/team<int:team_num>/pokemons/')
+@ns.route('/<int:battle_id>/team<int:team_num>/pokemons/')
 class Pokemons(Resource):
-    @api.resolve_object_by_model(Battle, 'battle')
-    @api.response(BasePokemonSchema(many=True))
+    @ns.resolve_object_by_model(Battle, 'battle')
+    @ns.response(BasePokemonSchema(many=True))
     def get(self, battle, team_num):
         """
         List of pokemons from a team
         """
-        print(Opponents.get_battle_opponent(battle, team_num).pokemons)
-        return Opponents.get_battle_opponent(battle, team_num).pokemons
+        return Teams.get_battle_team(battle, team_num).pokemons
 
 
 
 
 
-# @api.route('/<int:battle_id>/points')
+# @ns.route('/<int:battle_id>/points')
 # class Points(Resource):
 #     """
 #     Manipulations with battlees' points.
 #     """
 #
-#     @api.resolve_object_by_model(Battle, 'battle')
-#     @api.parameters(parameters.AddPointParameters())
-#     @api.response(schemas.PointSchema())
-#     @api.response(code=http_exceptions.Conflict.code)
+#     @ns.resolve_object_by_model(Battle, 'battle')
+#     @ns.parameters(parameters.AddPointParameters())
+#     @ns.response(schemas.PointSchema())
+#     @ns.response(code=http_exceptions.Conflict.code)
 #     def post(self, args, battle):
 #         """
 #         Add a new point to a battle.

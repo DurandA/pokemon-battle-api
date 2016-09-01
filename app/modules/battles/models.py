@@ -23,30 +23,41 @@ class Location(db.Model):
     lng = db.Column(db.Float, primary_key=True)
 
 
-# class OpponentPokemon(db.Model):
+# class TeamPokemon(db.Model):
 #     """
-#     Opponent-pokemon database model.
+#     Team-pokemon database model.
 #     """
-#     __tablename__ = 'opponent_pokemon'
+#     __tablename__ = 'team_pokemon'
 #
-#     opponent_id = db.Column(db.Integer, db.ForeignKey('opponent.id'), primary_key=True)
-#     opponent = db.relationship(
-#         'Opponent',
+#     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
+#     team = db.relationship(
+#         'Team',
 #         backref=db.backref('pokemons')
 #     )
 #     pokemon_id = db.Column(db.Integer, db.ForeignKey('pokemon.id'), primary_key=True)
 #     pokemon = db.relationship(
 #         'Pokemon',
-#         backref=db.backref('opponent_membership', cascade='delete, delete-orphan')
+#         backref=db.backref('team_membership', cascade='delete, delete-orphan')
 #     )
 
-opponent_pokemon = db.Table('opponent_pokemon', db.Model.metadata,
-    db.Column('opponent_id', db.Integer, db.ForeignKey('opponent.id')),
+    def __repr__(self):
+        return (
+            "<{class_name}("
+            "lat=\"{self.lat}\", "
+            "lng=\"{self.lng}\""
+            ")>".format(
+                class_name=self.__class__.__name__,
+                self=self
+            )
+        )
+
+team_pokemon = db.Table('team_pokemon', db.Model.metadata,
+    db.Column('team_id', db.Integer, db.ForeignKey('team.id')),
     db.Column('pokemon_id', db.Integer, db.ForeignKey('pokemon.id'))
 )
 
 
-class Opponent(db.Model):
+class Team(db.Model):
     """
     Battle-member database model.
     """
@@ -55,15 +66,15 @@ class Opponent(db.Model):
 
 
     battle = db.relationship("Battle",
-                primaryjoin="or_(Opponent.id==Battle.opponent1_id, "
-                    "Opponent.id==Battle.opponent2_id)")
+                primaryjoin="or_(Team.id==Battle.team1_id, "
+                    "Team.id==Battle.team2_id)")
     trainer_id = db.Column(db.Integer, db.ForeignKey('trainer.id'))
     trainer = db.relationship(
         'Trainer',
         backref=db.backref('battles_membership', cascade='delete, delete-orphan')
     )
     pokemons = db.relationship("Pokemon",
-                    secondary=opponent_pokemon)
+                    secondary=team_pokemon)
 
 
 class Battle(db.Model, Timestamp):
@@ -73,14 +84,15 @@ class Battle(db.Model, Timestamp):
 
     id = db.Column(db.Integer, primary_key=True) # pylint: disable=invalid-name
 
-    opponent1_id = db.Column(db.Integer, db.ForeignKey('opponent.id'))
-    opponent1 = db.relationship('Opponent', foreign_keys=[opponent1_id])
-    opponent2_id = db.Column(db.Integer, db.ForeignKey('opponent.id'))
-    opponent2 = db.relationship('Opponent', foreign_keys=[opponent2_id])
+    team1_id = db.Column(db.Integer, db.ForeignKey('team.id'))
+    team1 = db.relationship('Team', foreign_keys=[team1_id])
+    team2_id = db.Column(db.Integer, db.ForeignKey('team.id'))
+    team2 = db.relationship('Team', foreign_keys=[team2_id])
     lat = db.Column(db.Float, db.ForeignKey('location.lat'))
     lng = db.Column(db.Float, db.ForeignKey('location.lng'))
     location = db.relationship('Location', foreign_keys=[lat, lng], single_parent=True, cascade='delete')
-
+    winner_id = db.Column(db.Integer, db.ForeignKey('team.id'))
+    winner = db.relationship('Team', foreign_keys=[winner_id], single_parent=True)
     # pokemons = db.relationship('Pokemon', secondary=pokemons,
     #     backref=db.backref('battles', lazy='dynamic'))
     start_time = db.Column(db.DateTime, nullable=False)
@@ -90,7 +102,7 @@ class Battle(db.Model, Timestamp):
     #     return datetime.datetime.now() > self.start_time + datetime.timedelta(minutes = 90)
 
     __table_args__ = (
-        db.CheckConstraint('opponent1_id != opponent2_id', name='_opponent_cc'),
+        db.CheckConstraint('team1_id != team2_id', name='_team_cc'),
         db.ForeignKeyConstraint(
             ['lat', 'lng'],
             ['location.lat', 'location.lng'],
@@ -101,8 +113,8 @@ class Battle(db.Model, Timestamp):
         return (
             "<{class_name}("
             "id={self.id}, "
-            "team1_id=\"{self.opponent1_id}\", "
-            "team2_id=\"{self.opponent2_id}\", "
+            "team1_id=\"{self.team1_id}\", "
+            "team2_id=\"{self.team2_id}\", "
             "start_time=\"{self.start_time}\", "
             ")>".format(
                 class_name=self.__class__.__name__,

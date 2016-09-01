@@ -48,15 +48,15 @@ class Trainer(db.Model, Timestamp):
     """
 
     id = db.Column(db.Integer, primary_key=True) # pylint: disable=invalid-name
-    first_name = db.Column(db.String(length=30), default='', nullable=False)
-    last_name = db.Column(db.String(length=30), default='', nullable=False)
+    name = db.Column(db.String(length=30), default='', nullable=False)
+    #last_name = db.Column(db.String(length=30), default='', nullable=False)
     gender = db.Column(db.Enum("female", "male", name="gender_enum"), nullable=False)
 
     #members = db.relationship('TeamMember', cascade='delete, delete-orphan')
     #matches = db.relationship('Match')
     # battle_member = db.relationship('Opponent',
-    #                 primaryjoin="or_(Trainer.id==Opponent.trainer1_id, "
-    #                     "Trainer.id==Opponent.trainer2_id)")
+    #                 primaryjoin="or_(Trainer.id==Team.trainer1_id, "
+    #                     "Trainer.id==Team.trainer2_id)")
 
     def __repr__(self):
         return (

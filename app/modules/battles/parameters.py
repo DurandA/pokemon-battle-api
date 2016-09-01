@@ -5,32 +5,28 @@ Input arguments (Parameters) for Battle resources RESTful API
 """
 
 from flask_marshmallow import base_fields
-from flask_restplus_patched import Parameters, PostFormParameters, PatchJSONParameters
+from flask_restplus_patched import Parameters, PostFormParameters, PatchJSONParameters, fields, reqparse, Model
 
-from . import schemas
+from . import schemas, ns
 from .models import Battle
 
 
-
-class OpponentParameters(PostFormParameters):
+class TeamNumParameters(PostFormParameters):
     team_num = base_fields.Integer(description="[1-2] (one of both teams)", required=True, location='header')
     team_num.metadata['location'] = 'form'
 
 
+# Model = JSONParameters
+
+
+create_battle_parser = reqparse.RequestParser()
+create_battle_parser.add_argument('trainer1_id', type=int, required=True)
+create_battle_parser.add_argument('trainer2_id', type=int, required=True)
+create_battle_parser.add_argument('lat', type=float)
+create_battle_parser.add_argument('lng', type=float)
+
 class PokemonParameters(PostFormParameters):
     pokemon_id = base_fields.Integer(required=True)
-
-
-class CreateBattleParameters(PostFormParameters):
-    trainer1_id = base_fields.Integer(required=True)
-    trainer2_id = base_fields.Integer(required=True)
-    opponent1_pokemons = base_fields.List(base_fields.Integer, required=True)
-    opponent2_pokemons = base_fields.List(base_fields.Integer, required=True)
-    #opponent2_pokemons = base_fields.Nested(PokemonParameters, many=True, required=True)
-
-    start_time = base_fields.DateTime(required=True)
-    lat = base_fields.Float()
-    lng = base_fields.Float()
 
 
 class AddBattleParameters(PostFormParameters):
@@ -38,7 +34,19 @@ class AddBattleParameters(PostFormParameters):
     team_id = base_fields.Integer(required=True)
     timestamp = base_fields.DateTime(required=False)
 
+TeamParameters = ns.model('BattleTeam', {
+    'trainer_id': fields.Integer(required=True),
+    'pokemon_ids': fields.List(fields.Integer, required=True),
+})
 
-class LocationParameters(PostFormParameters):
-    lat = base_fields.Float(required=True)
-    lng = base_fields.Float(required=True)
+LocationParameters = ns.model('BattleLocation', {
+    'lat': fields.Float(required=True),
+    'lng': fields.Float(required=True),
+})
+
+CreateBattleParameters = ns.model('Battle', {
+    'team1': fields.Nested(TeamParameters),
+    'team2': fields.Nested(TeamParameters),
+    'start_time': fields.DateTime(required=True),
+    'location': fields.Nested(LocationParameters),
+})

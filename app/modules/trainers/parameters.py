@@ -16,8 +16,7 @@ class CreateTrainerParameters(PostFormParameters, schemas.BaseTrainerSchema):
     class Meta(schemas.BaseTrainerSchema.Meta):
         # This is not supported yet: https://github.com/marshmallow-code/marshmallow/issues/344
         required = (
-            Trainer.first_name.key,
-            Trainer.last_name.key,
+            Trainer.name.key,
             Trainer.gender.key,
         )
 
@@ -30,8 +29,7 @@ class PatchTrainerDetailsParameters(PatchJSONParameters):
 
     PATH_CHOICES = tuple(
         '/%s' % field for field in (
-            Trainer.first_name.key,
-            Trainer.last_name.key,
+            Trainer.name.key,
         )
     )
 

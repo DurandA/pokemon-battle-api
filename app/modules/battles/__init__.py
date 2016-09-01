@@ -4,7 +4,8 @@ Matches module
 ============
 """
 
-from app.extensions.api import api_v1
+from app.extensions.api import api_v1, Namespace
+ns = Namespace('battles', description="Battles")
 #from . import websockets
 #from flask_sockets import Sockets
 
@@ -26,6 +27,6 @@ def init_app(app, **kwargs):
     #
     # socketio.on_event('echo', websockets.async_test, namespace='/test')
     print ('asdf')
-    api_v1.add_namespace(resources.api)
+    api_v1.add_namespace(ns)
     #sockets = Sockets(app)
     #sockets.register_blueprint(resources.ws)

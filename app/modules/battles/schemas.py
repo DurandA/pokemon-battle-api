@@ -33,6 +33,7 @@ class LocationSchema(ModelSchema):
 
 class TeamBattleAPISchema(Schema):
     trainer = base_fields.Function(lambda obj: obj.trainer.name)
+    trainer_id = base_fields.Function(lambda obj: obj.trainer.id)
     pokemon = base_fields.Function(lambda obj: [p.id for p in obj.pokemons])
 
 
@@ -61,7 +62,7 @@ class BaseBattleSchema(ModelSchema):
         exclude=(),
     )
     #is_finished = base_fields.Method("get_is_finished")
-    end_time = base_fields.Function(lambda obj: obj.updated if obj.winner else None)
+    end_time = base_fields.Function(lambda obj: obj.updated.isoformat() if obj.winner else None)
 
     # def get_is_finished(self, obj):
     #     return datetime.datetime.now() > obj.start_time + datetime.timedelta(minutes = 90)

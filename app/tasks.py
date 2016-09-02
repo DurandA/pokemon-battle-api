@@ -37,4 +37,7 @@ def broadcast_battle(battle_id, battle):
             match = re.match('(.*?) defeated (.*?)!', event)
             if match:
                 print('%s won!' % match.group(1))
+                print(battle)
+                #r = requests.put("http://127.0.0.1:5000/api/v1/battles/{}/outcome".format(battle_id), json={"trainer_id": trainer_id})
             time.sleep(1)
+    return match.group(1)

@@ -90,7 +90,7 @@ class Battle(db.Model, Timestamp):
     team2 = db.relationship('Team', foreign_keys=[team2_id])
     lat = db.Column(db.Float, db.ForeignKey('location.lat'))
     lng = db.Column(db.Float, db.ForeignKey('location.lng'))
-    location = db.relationship('Location', foreign_keys=[lat, lng], single_parent=True, cascade='delete')
+    location = db.relationship('Location', foreign_keys=[lat, lng], backref=db.backref("battles", cascade="all, delete-orphan")) # single_parent=True
     winner_id = db.Column(db.Integer, db.ForeignKey('team.id'))
     winner = db.relationship('Team', foreign_keys=[winner_id], single_parent=True)
     # pokemons = db.relationship('Pokemon', secondary=pokemons,

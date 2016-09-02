@@ -91,6 +91,11 @@ class Battles(Resource):
                 abort(code=http_exceptions.Conflict.code, message="Could not create a new battle.")
         finally:
             db.session.rollback()
+        broadcast_battle.apply_async(args=[
+                battle.id,
+                schemas.BattleAPISchema().dump(battle).data
+            ], eta=battle.start_time)
+        print('delayed broadcast_battle')
         return battle
 
 
@@ -111,11 +116,6 @@ class BattleByID(Resource):
         Get battle details by ID.
         """
         #battle = Battle.query.options(db.joinedload('team1')).get_or_404(battle.id)
-        broadcast_battle.delay(
-            battle.id,
-            schemas.BattleAPISchema().dump(battle).data
-        )
-        print('delayed broadcast_battle')
         return battle
 
     @ns.resolve_object_by_model(Battle, 'battle')
@@ -136,38 +136,61 @@ class BattleByID(Resource):
             )
         return None
 
-    @ns.route('/<int:battle_id>/location')
-    class Location(Resource):
-        @ns.resolve_object_by_model(Battle, 'battle')
-        @ns.response(schemas.LocationSchema())
-        def get(self, battle):
-            """
-            Get battle location.
-            """
-            return battle.location
 
-        @ns.resolve_object_by_model(Battle, 'battle')
-        @ns.expect(parameters.LocationParameters, validate=True)
-        @ns.response(schemas.LocationSchema())
-        def put(self, battle):
-            """
-            Set battle location.
-            """
+@ns.hide
+@ns.route('/<int:battle_id>/outcome')
+class Outcome(Resource):
+    @ns.resolve_object_by_model(Battle, 'battle')
+    @ns.expect(parameters.outcome_parser, strict=True)
+    @ns.response(schemas.TeamSchema())
+    #@ns.param('trainer_id', description='trainer ID of the winner')
+    def put(self, battle):
+        """
+        Set a battle winner.
+        """
+        args = parameters.outcome_parser.parse_args()
+        winner = db.session.query(Team).filter(
+            Team.trainer_id==args['trainer_id'], Team.battle.contains(battle)
+        ).first_or_404()
+
+        battle.winner = winner
+        db.session.commit()
+        return winner
+
+
+@ns.route('/<int:battle_id>/location')
+class Location(Resource):
+    @ns.resolve_object_by_model(Battle, 'battle')
+    @ns.response(schemas.LocationSchema())
+    def get(self, battle):
+        """
+        Get battle location.
+        """
+        return battle.location
+
+    @ns.resolve_object_by_model(Battle, 'battle')
+    @ns.expect(parameters.LocationParameters, validate=True)
+    @ns.response(schemas.LocationSchema())
+    def put(self, battle):
+        """
+        Set battle location.
+        """
+        try:
             try:
-                try:
-                    location =  if battle.location else Location(**api.payload)
-                    battle.location = location
-                except ValueError as exception:
-                    abort(code=http_exceptions.Conflict.code, message=str(exception))
-                db.session.add(location)
-                db.session.add(battle)
-                try:
-                    db.session.commit()
-                except sqlalchemy.exc.IntegrityError:
-                    abort(code=http_exceptions.Conflict.code, message="Could not set the location.")
-            finally:
-                db.session.rollback()
-            return location
+                location = Location(**api.payload)
+                location = db.session.merge(location)
+                battle.location = location# db.session.query(Location).get(location)
+            except ValueError as exception:
+                abort(code=http_exceptions.Conflict.code, message=str(exception))
+            #db.session.add(location)
+            #db.session.add(battle)
+            try:
+                db.session.commit()
+            except sqlalchemy.exc.IntegrityError as exception:
+                abort(code=http_exceptions.Conflict.code, message="Could not set the location." + str(exception))
+        finally:
+            db.session.rollback()
+        return location
 
 
 @ns.route('/<int:battle_id>/team<int:team_num>')
@@ -191,6 +214,7 @@ class Teams(Resource):
         """
         return self.get_battle_team(battle, team_num)
 
+
 @ns.route('/<int:battle_id>/team<int:team_num>/trainer')
 class Trainer(Resource):
     @ns.resolve_object_by_model(Battle, 'battle')
@@ -200,6 +224,7 @@ class Trainer(Resource):
         Get trainer from a team
         """
         return Teams.get_battle_team(battle, team_num).trainer
+
 
 @ns.route('/<int:battle_id>/team<int:team_num>/pokemons/')
 class Pokemons(Resource):

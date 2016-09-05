@@ -51,7 +51,7 @@ class Trainer(db.Model, Timestamp):
     name = db.Column(db.String(length=30), default='', nullable=False)
     #last_name = db.Column(db.String(length=30), default='', nullable=False)
     gender = db.Column(db.Enum("female", "male", name="gender_enum"), nullable=False)
-
+    country_code =  db.Column(db.String(length=3), default='', nullable=False) # ISO 30166
     #members = db.relationship('TeamMember', cascade='delete, delete-orphan')
     #matches = db.relationship('Match')
     # battle_member = db.relationship('Opponent',
@@ -62,9 +62,9 @@ class Trainer(db.Model, Timestamp):
         return (
             "<{class_name}("
             "id={self.id}, "
-            "first_name=\"{self.first_name}\""
-            "last_name=\"{self.last_name}\""
-            "gender=\"{self.gender}\""
+            "name=\"{self.name}\", "
+            "gender=\"{self.gender}\", "
+            "country=\"{self.country_code}\""
             ")>".format(
                 class_name=self.__class__.__name__,
                 self=self

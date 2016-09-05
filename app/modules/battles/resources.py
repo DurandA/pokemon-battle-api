@@ -22,6 +22,7 @@ from .models import db, Battle, Team, Location
 from app.tasks import broadcast_battle
 from app.modules.pokemons.models import Pokemon
 from app.modules.pokemons.schemas import BasePokemonSchema
+from app.modules.trainers.models import Trainer
 from app.modules.trainers.schemas import DetailedTrainerSchema
 
 import dateutil.parser
@@ -150,7 +151,7 @@ class Outcome(Resource):
         """
         args = parameters.outcome_parser.parse_args()
         winner = db.session.query(Team).filter(
-            Team.trainer_id==args['trainer_id'], Team.battle.contains(battle)
+            Team.trainer.has(Trainer.name.ilike(args['trainer'])), Team.battle.contains(battle)
         ).first_or_404()
 
         battle.winner = winner
@@ -216,7 +217,7 @@ class Teams(Resource):
 
 
 @ns.route('/<int:battle_id>/team<int:team_num>/trainer')
-class Trainer(Resource):
+class TrainerByBattle(Resource):
     @ns.resolve_object_by_model(Battle, 'battle')
     @ns.response(DetailedTrainerSchema())
     def get(self, battle, team_num):
@@ -235,55 +236,3 @@ class Pokemons(Resource):
         List of pokemons from a team
         """
         return Teams.get_battle_team(battle, team_num).pokemons
-
-
-
-
-
-# @ns.route('/<int:battle_id>/points')
-# class Points(Resource):
-#     """
-#     Manipulations with battlees' points.
-#     """
-#
-#     @ns.resolve_object_by_model(Battle, 'battle')
-#     @ns.parameters(parameters.AddPointParameters())
-#     @ns.response(schemas.PointSchema())
-#     @ns.response(code=http_exceptions.Conflict.code)
-#     def post(self, args, battle):
-#         """
-#         Add a new point to a battle.
-#         """
-#         try:
-#             player_id = args.pop('player_id')
-#             player = Battle.query.get(battle_id)
-#             if player is None:
-#                 abort(
-#                     code=http_exceptions.NotFound.code,
-#                     message="Player with id %d does not exist" % player_id
-#                 )
-#             trainer_id = args.pop('trainer_id')
-#             trainer = Battle.query.get(trainer_id)
-#             if trainer is None:
-#                 abort(
-#                     code=http_exceptions.NotFound.code,
-#                     message="Trainer with id %d does not exist" % trainer_id
-#                 )
-#
-#             try:
-#                 point = Point(battle=battle, trainer=trainer, player=player, **args)
-#             except ValueError as exception:
-#                 abort(code=http_exceptions.Conflict.code, message=str(exception))
-#
-#             db.session.add(point)
-#
-#             try:
-#                 db.session.commit()
-#             except sqlalchemy.exc.IntegrityError:
-#                 abort(
-#                     code=http_exceptions.Conflict.code,
-#                     message="Could not update point details."
-#                 )
-#         finally:
-#             db.session.rollback()
-#         return point

@@ -77,8 +77,8 @@ class BaseBattleSchema(ModelSchema):
             Battle.team1.key,
             Battle.team2.key,
             Battle.start_time.key,
+            Battle.winner.key,
             'end_time',
-            #'is_finished',
         )
         dump_only = (
             Battle.id.key,

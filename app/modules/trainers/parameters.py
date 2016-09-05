@@ -3,15 +3,16 @@
 Input arguments (Parameters) for Trainer resources RESTful API
 -----------------------------------------------------------
 """
-
+from six import itervalues
 from flask_marshmallow import base_fields
-from flask_restplus_patched import PostFormParameters, PatchJSONParameters
+from flask_restplus_patched import Parameters, PostFormParameters, PatchJSONParameters, fields
 
-from . import schemas
+from . import schemas, ns
 from .models import Trainer
 
 
-class CreateTrainerParameters(PostFormParameters, schemas.BaseTrainerSchema):
+class CreateTrainerParameters(Parameters, schemas.BaseTrainerSchema):
+
 
     class Meta(schemas.BaseTrainerSchema.Meta):
         # This is not supported yet: https://github.com/marshmallow-code/marshmallow/issues/344
@@ -19,6 +20,13 @@ class CreateTrainerParameters(PostFormParameters, schemas.BaseTrainerSchema):
             Trainer.name.key,
             Trainer.gender.key,
         )
+
+
+CreateTrainerParameters = ns.model('Battle', {
+    'name': fields.String(required=True),
+    'gender': fields.String(required=True, enum=['male', 'female']),
+    'country_code': fields.String(min_length=2, max_length=3),
+})
 
 
 class PatchTrainerDetailsParameters(PatchJSONParameters):
@@ -30,6 +38,7 @@ class PatchTrainerDetailsParameters(PatchJSONParameters):
     PATH_CHOICES = tuple(
         '/%s' % field for field in (
             Trainer.name.key,
+            Trainer.gender.key,
         )
     )
 

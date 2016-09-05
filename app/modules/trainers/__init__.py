@@ -3,7 +3,8 @@ Teams module
 ============
 """
 
-from app.extensions.api import api_v1
+from app.extensions.api import api_v1, Namespace
+ns = Namespace('trainers', description="Trainers") # pylint: disable=invalid-name
 
 
 def init_app(app, **kwargs):
@@ -15,4 +16,4 @@ def init_app(app, **kwargs):
     # Touch underlying modules
     from . import models, resources
 
-    api_v1.add_namespace(resources.api)
+    api_v1.add_namespace(ns)

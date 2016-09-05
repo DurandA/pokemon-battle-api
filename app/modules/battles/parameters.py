@@ -16,16 +16,8 @@ class TeamNumParameters(PostFormParameters):
     team_num.metadata['location'] = 'form'
 
 
-# Model = JSONParameter
-
 class PokemonParameters(PostFormParameters):
     pokemon_id = base_fields.Integer(required=True)
-
-
-class AddBattleParameters(PostFormParameters):
-    player_id = base_fields.Integer(required=True)
-    team_id = base_fields.Integer(required=True)
-    timestamp = base_fields.DateTime(required=False)
 
 
 TeamParameters = ns.model('BattleTeam', {
@@ -48,4 +40,4 @@ CreateBattleParameters = ns.model('Battle', {
 })
 
 outcome_parser = reqparse.RequestParser()
-outcome_parser.add_argument('trainer_id', type=int, required=True)
+outcome_parser.add_argument('trainer', type=str, required=True)

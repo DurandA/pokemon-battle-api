@@ -24,6 +24,7 @@ class BaseTrainerSchema(ModelSchema):
             Trainer.id.key,
             Trainer.name.key,
             Trainer.gender.key,
+            Trainer.country_code.key,
         )
         dump_only = (
             Trainer.id.key,

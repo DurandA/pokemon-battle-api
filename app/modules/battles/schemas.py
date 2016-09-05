@@ -48,6 +48,11 @@ class BattleAPISchema(Schema):
     )
 
 
+class WinnerSchema(Schema):
+    trainer = base_fields.Function(lambda obj: obj.trainer.name)
+    trainer_id = base_fields.Function(lambda obj: obj.trainer.id)
+
+
 class BaseBattleSchema(ModelSchema):
     """
     Base battle schema exposes only the most general fields.
@@ -62,7 +67,10 @@ class BaseBattleSchema(ModelSchema):
         exclude=(),
     )
     #is_finished = base_fields.Method("get_is_finished")
-    end_time = base_fields.Function(lambda obj: obj.updated.isoformat() if obj.winner else None)
+    start_time = base_fields.LocalDateTime(format='iso')
+    end_time = base_fields.LocalDateTime(format='iso')
+    winner = base_fields.Nested(WinnerSchema)
+    #base_fields.Function(lambda obj: obj.updated.isoformat() if obj.winner else None)
 
     # def get_is_finished(self, obj):
     #     return datetime.datetime.now() > obj.start_time + datetime.timedelta(minutes = 90)
@@ -78,11 +86,11 @@ class BaseBattleSchema(ModelSchema):
             Battle.team2.key,
             Battle.start_time.key,
             Battle.winner.key,
-            'end_time',
+            Battle.end_time.fget.__name__,
         )
         dump_only = (
             Battle.id.key,
-            'end_time',
+            Battle.end_time.fget.__name__,
         )
 
 

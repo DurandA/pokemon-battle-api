@@ -1,17 +1,14 @@
-from . import celery
-
-from flask_socketio import SocketIO
+from app.extensions import celery, socketio
 
 from app.modules.battles.models import Battle
 from app.modules.battles.schemas import DetailedBattleSchema
+
+from flask_socketio import SocketIO
 
 from io import StringIO
 import requests
 import time
 import re
-
-
-socketio = SocketIO(message_queue='redis://')
 
 
 @celery.task()
@@ -33,11 +30,13 @@ def broadcast_battle(battle_id, battle):
     for line in result:
         event = line.strip()
         if event:
+            print(event)
             socketio.send(event, namespace='/battles/{0}'.format(battle_id))
             match = re.match('(.*?) defeated (.*?)!', event)
             if match:
-                print('%s won!' % match.group(1))
+                winner = match.group(1)
+                print('%s won!' % winner)
                 print(battle)
-                #r = requests.put("http://127.0.0.1:5000/api/v1/battles/{}/outcome".format(battle_id), json={"trainer_id": trainer_id})
+                r = requests.put("http://127.0.0.1:5000/api/v1/battles/{}/outcome".format(battle_id), json={"trainer": winner})
             time.sleep(1)
-    return match.group(1)
+    return winner

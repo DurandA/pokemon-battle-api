@@ -10,7 +10,7 @@ import logging
 from flask import Blueprint
 from flask_login import current_user
 from flask_restplus import Resource
-from flask_sockets import Sockets
+#from flask_sockets import Sockets
 import sqlalchemy
 #from flask_socketio import emit
 
@@ -25,29 +25,8 @@ from app.modules.pokemons.schemas import BasePokemonSchema
 from app.modules.trainers.models import Trainer
 from app.modules.trainers.schemas import DetailedTrainerSchema
 
-import dateutil.parser
 
 log = logging.getLogger(__name__)
-
-ws = Blueprint(r'ws', __name__)
-
-# @ws.route('/echo')
-# def echo_socket(socket):
-#     while not socket.closed:
-#         message = socket.receive()
-#         socket.send(message)
-
-# @celery.task()
-# def add_together(a, b):
-#     print('add_together %i+%i' % (a, b))
-#     return a + b
-#
-# @celery.task()
-# def broadcast_battle(battle_id):
-#     print('broadcasting battle...')
-#     socketio.emit('message',
-#                       {'data': 'Server generated event'},
-#                       namespace='/battles')
 
 
 @ns.route('/')

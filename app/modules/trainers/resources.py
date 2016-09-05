@@ -39,6 +39,7 @@ class Trainers(Resource):
         return Trainer.query.offset(args['offset']).limit(args['limit'])
 
     @ns.expect(parameters.CreateTrainerParameters)
+    #@ns.parameters(parameters.CreateTrainerParameters(), locations='json')
     @ns.response(schemas.DetailedTrainerSchema())
     @ns.response(code=http_exceptions.Conflict.code)
     def post(self):

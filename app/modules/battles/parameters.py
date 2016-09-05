@@ -39,5 +39,10 @@ CreateBattleParameters = ns.model('Battle', {
     'location': fields.Nested(LocationParameters),
 })
 
+
+class OutcomeParameters(Parameters):
+    trainer_id = base_fields.Integer(required=True)
+
+
 outcome_parser = reqparse.RequestParser()
 outcome_parser.add_argument('trainer', type=str, required=True)

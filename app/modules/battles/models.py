@@ -97,9 +97,9 @@ class Battle(db.Model, Timestamp):
     #     backref=db.backref('battles', lazy='dynamic'))
     start_time = db.Column(db.DateTime, nullable=False)
 
-    # @property
-    # def is_finished(self):
-    #     return datetime.datetime.now() > self.start_time + datetime.timedelta(minutes = 90)
+    @property
+    def end_time(self):
+        return self.updated if self.winner else None
 
     __table_args__ = (
         db.CheckConstraint('team1_id != team2_id', name='_team_cc'),

@@ -25,6 +25,12 @@ login_manager = LoginManager()
 from flask_marshmallow import Marshmallow
 marshmallow = Marshmallow()
 
+from celery import Celery
+celery = Celery(__name__, broker='redis://')
+
+from flask_socketio import SocketIO
+socketio = SocketIO(async_mode='eventlet', message_queue='redis://')
+
 from . import api
 
 from .auth import OAuth2Provider
@@ -54,6 +60,7 @@ def init_app(app):
             marshmallow,
             api,
             oauth2,
+            socketio,
     ):
         extension.init_app(app)
 

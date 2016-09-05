@@ -29,16 +29,21 @@ class Pokemons(Resource):
     Manipulations with sports.
     """
 
-    @api.parameters(PaginationParameters())
+    #@api.parameters(PaginationParameters())
+    @api.parameters(parameters.PokemonsParameters())
     @api.response(schemas.BasePokemonSchema(many=True))
-    def get(self):
+    def get(self, args):
         """
         List of pokemons.
 
         Returns a list of pokemons starting from ``offset`` limited by ``limit``
         parameter.
         """
-        return Pokemon.query.offset(args['offset']).limit(args['limit'])
+        q = Pokemon.query
+        if 'pokemon_type' in args:
+            q = q.filter(Pokemon.types.any(id=args['pokemon_type']))
+            #q = q.filter_by(pokemon_type_id=args['pokemon_type'])
+        return q.offset(args['offset']).limit(args['limit'])
 
 
 @api.route('/<int:pokemon_id>')

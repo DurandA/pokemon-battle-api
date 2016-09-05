@@ -11,19 +11,25 @@ from . import schemas, ns
 from .models import Trainer
 
 
-class CreateTrainerParameters(Parameters, schemas.BaseTrainerSchema):
+# class CreateTrainerParameters(Parameters, schemas.BaseTrainerSchema):
+#
+#
+#     class Meta(schemas.BaseTrainerSchema.Meta):
+#         # This is not supported yet: https://github.com/marshmallow-code/marshmallow/issues/344
+#         required = (
+#             Trainer.name.key,
+#             Trainer.gender.key,
+#         )
 
 
-    class Meta(schemas.BaseTrainerSchema.Meta):
-        # This is not supported yet: https://github.com/marshmallow-code/marshmallow/issues/344
-        required = (
-            Trainer.name.key,
-            Trainer.gender.key,
-        )
+# class CreateTrainerParameters(Parameters):
+#     name = fields.String(required=True)
+#     gender = fields.String(required=True, enum=['male', 'female'])
+#     country_code = fields.String(min_length=2, max_length=3)
 
 
-CreateTrainerParameters = ns.model('Battle', {
-    'name': fields.String(required=True),
+CreateTrainerParameters = ns.model('Trainer', {
+    'name': fields.String(required=True, min_length=3),
     'gender': fields.String(required=True, enum=['male', 'female']),
     'country_code': fields.String(min_length=2, max_length=3),
 })

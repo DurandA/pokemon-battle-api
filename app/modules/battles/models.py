@@ -13,32 +13,13 @@ from app.modules.pokemons.models import Pokemon
 import datetime
 
 
-# pokemons = db.Table('battle_pokemons',
-#     db.Column('pokemon_id', db.Integer, db.ForeignKey('pokemon.id')),
-#     db.Column('battle_id', db.Integer, db.ForeignKey('battle.id'))
-# )
+class Location(object):
+    def __init__(self, lat, lng):
+        self.lat = lat
+        self.lng = lng
 
-class Location(db.Model):
-    lat = db.Column(db.Float, primary_key=True)
-    lng = db.Column(db.Float, primary_key=True)
-
-
-# class TeamPokemon(db.Model):
-#     """
-#     Team-pokemon database model.
-#     """
-#     __tablename__ = 'team_pokemon'
-#
-#     team_id = db.Column(db.Integer, db.ForeignKey('team.id'), primary_key=True)
-#     team = db.relationship(
-#         'Team',
-#         backref=db.backref('pokemons')
-#     )
-#     pokemon_id = db.Column(db.Integer, db.ForeignKey('pokemon.id'), primary_key=True)
-#     pokemon = db.relationship(
-#         'Pokemon',
-#         backref=db.backref('team_membership', cascade='delete, delete-orphan')
-#     )
+    def __composite_values__(self):
+        return self.lat, self.lng
 
     def __repr__(self):
         return (
@@ -50,6 +31,15 @@ class Location(db.Model):
                 self=self
             )
         )
+
+    def __eq__(self, other):
+        return isinstance(other, Location) and \
+            other.lat == self.lat and \
+            other.lng == self.lng
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 team_pokemon = db.Table('team_pokemon', db.Model.metadata,
     db.Column('team_id', db.Integer, db.ForeignKey('team.id')),
@@ -88,9 +78,9 @@ class Battle(db.Model, Timestamp):
     team1 = db.relationship('Team', foreign_keys=[team1_id])
     team2_id = db.Column(db.Integer, db.ForeignKey('team.id'))
     team2 = db.relationship('Team', foreign_keys=[team2_id])
-    lat = db.Column(db.Float, db.ForeignKey('location.lat'))
-    lng = db.Column(db.Float, db.ForeignKey('location.lng'))
-    location = db.relationship('Location', foreign_keys=[lat, lng], backref=db.backref("battles", cascade="all, delete-orphan")) # single_parent=True
+    lat = db.Column(db.Float)
+    lng = db.Column(db.Float)
+    location = db.composite(Location, lat, lng)
     winner_id = db.Column(db.Integer, db.ForeignKey('team.id'))
     winner = db.relationship('Team', foreign_keys=[winner_id], single_parent=True)
     # pokemons = db.relationship('Pokemon', secondary=pokemons,
@@ -103,11 +93,12 @@ class Battle(db.Model, Timestamp):
 
     __table_args__ = (
         db.CheckConstraint('team1_id != team2_id', name='_team_cc'),
-        db.ForeignKeyConstraint(
-            ['lat', 'lng'],
-            ['location.lat', 'location.lng'],
-        ),
     )
+
+    def __init__(self, *args, location=None, **kwargs):
+        if location:
+            self.location = Location(**location)
+        super(Battle, self).__init__(*args, **kwargs)
 
     def __repr__(self):
         return (

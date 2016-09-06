@@ -18,17 +18,12 @@ from app.modules.trainers.models import Trainer
 import datetime
 
 
-class LocationSchema(ModelSchema):
+class LocationSchema(Schema):
     """
     Location schema exposes all useful fields.
     """
-
-    class Meta:
-        model = Location
-        fields = (
-            Location.lat.key,
-            Location.lng.key,
-        )
+    lat = base_fields.Float()
+    lng = base_fields.Float()
 
 
 class TeamBattleAPISchema(Schema):
@@ -166,6 +161,7 @@ class CreateBattleSchema(Schema):
 
     @post_load
     def make_battle(self, data):
+        print(data)
         for tkey, t in [(tk, data.pop(tk)) for tk in ('team1', 'team2')]:
             data[tkey] = team = Team(trainer_id=t["trainer_id"])
             for pokemon_id in t['pokemon_ids']:

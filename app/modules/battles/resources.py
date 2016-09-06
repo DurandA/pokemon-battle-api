@@ -35,7 +35,7 @@ class Battles(Resource):
     Manipulations with battles.
     """
 
-    @ns.parameters(PaginationParameters())
+    @ns.parameters(parameters.BattleParameters())
     @ns.response(schemas.BaseBattleSchema(many=True))
     def get(self, args):
         """
@@ -44,7 +44,14 @@ class Battles(Resource):
         Returns a list of battlees starting from ``offset`` limited by ``limit``
         parameter.
         """
-        return Battle.query.offset(args['offset']).limit(args['limit'])
+        q = Battle.query
+        print(args)
+        if 'is_finished' in args:
+            if args['is_finished']:
+                q = q.filter(Battle.winner_id != None)
+            else:
+                q = q.filter(Battle.winner_id == None)
+        return q.offset(args['offset']).limit(args['limit'])
 
     @ns.expect(parameters.CreateBattleParameters)
     @ns.response(schemas.BaseBattleSchema())
@@ -57,11 +64,8 @@ class Battles(Resource):
         try:
             try:
                 battle, _ = schemas.CreateBattleSchema().load(battle_data)
-                print(battle)
             except ValueError as exception:
                 abort(code=http_exceptions.Conflict.code, message=str(exception))
-            if battle.location is not None:
-                db.session.add(battle.location)
             db.session.add(battle.team1)
             db.session.add(battle.team2)
             db.session.add(battle)
@@ -76,6 +80,7 @@ class Battles(Resource):
                 schemas.BattleAPISchema().dump(battle).data
             ], eta=battle.start_time)
         print('delayed broadcast_battle')
+        print(battle.location)
         return battle
 
 
@@ -121,16 +126,17 @@ class BattleByID(Resource):
 @ns.route('/<int:battle_id>/outcome')
 class Outcome(Resource):
     @ns.resolve_object_by_model(Battle, 'battle')
-    @ns.expect(parameters.outcome_parser, strict=True)
+    #@ns.expect(parameters.outcome_parser, strict=True)
+    @ns.parameters(parameters.OutcomeParameters())
     @ns.response(schemas.TeamSchema())
     #@ns.param('trainer_id', description='trainer ID of the winner')
-    def put(self, battle):
+    def put(self, args, battle):
         """
         Set a battle winner.
         """
-        args = parameters.outcome_parser.parse_args()
+        #args = parameters.outcome_parser.parse_args()
         winner = db.session.query(Team).filter(
-            Team.trainer.has(Trainer.name.ilike(args['trainer'])), Team.battle.contains(battle)
+            Team.trainer.has(Trainer.id == args['trainer_id']), Team.battle.contains(battle)
         ).first_or_404()
 
         battle.winner = winner
@@ -158,7 +164,6 @@ class Location(Resource):
         try:
             try:
                 location = Location(**api.payload)
-                location = db.session.merge(location)
                 battle.location = location# db.session.query(Location).get(location)
             except ValueError as exception:
                 abort(code=http_exceptions.Conflict.code, message=str(exception))

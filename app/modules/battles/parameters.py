@@ -10,6 +10,12 @@ from flask_restplus_patched import Parameters, PostFormParameters, PatchJSONPara
 from . import schemas, ns
 from .models import Battle
 
+from app.extensions.api.parameters import PaginationParameters
+
+
+class BattleParameters(PaginationParameters):
+    is_finished = base_fields.Boolean(required=False)
+
 
 class TeamNumParameters(PostFormParameters):
     team_num = base_fields.Integer(description="[1-2] (one of both teams)", required=True, location='header')
@@ -41,7 +47,7 @@ CreateBattleParameters = ns.model('Battle', {
 
 
 class OutcomeParameters(Parameters):
-    trainer_id = base_fields.Integer(required=True)
+    trainer_id = base_fields.Integer(required=True, location='json')
 
 
 outcome_parser = reqparse.RequestParser()

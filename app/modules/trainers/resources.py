@@ -38,17 +38,17 @@ class Trainers(Resource):
         """
         return Trainer.query.offset(args['offset']).limit(args['limit'])
 
-    @ns.expect(parameters.CreateTrainerParameters)
-    #@ns.parameters(parameters.CreateTrainerParameters(), locations='json')
+    #@ns.expect(parameters.CreateTrainerParameters)
+    @ns.parameters(parameters.CreateTrainerParameters(), locations=('json',))
     @ns.response(schemas.DetailedTrainerSchema())
     @ns.response(code=http_exceptions.Conflict.code)
-    def post(self):
+    def post(self, trainer_data):
         """
         Create a new trainer.
         """
         try:
             try:
-                trainer = Trainer(**api.payload)
+                trainer = Trainer(**trainer_data)
             except ValueError as exception:
                 abort(code=http_exceptions.Conflict.code, message=str(exception))
             db.session.add(trainer)

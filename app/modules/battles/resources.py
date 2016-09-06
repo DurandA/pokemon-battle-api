@@ -53,21 +53,15 @@ class Battles(Resource):
                 q = q.filter(Battle.winner_id == None)
         return q.offset(args['offset']).limit(args['limit'])
 
-    @ns.expect(parameters.CreateBattleParameters)
+    @ns.parameters(parameters.CreateBattleParameters(many=False), locations=('json',))
+    #@ns.expect(parameters.CreateBattleParameters)
     @ns.response(schemas.BaseBattleSchema())
     @ns.response(code=http_exceptions.Conflict.code)
-    def post(self):
+    def post(self, battle):
         """
         Create a new battle.
         """
-        battle_data = api.payload
         try:
-            try:
-                battle, _ = schemas.CreateBattleSchema().load(battle_data)
-            except ValueError as exception:
-                abort(code=http_exceptions.Conflict.code, message=str(exception))
-            db.session.add(battle.team1)
-            db.session.add(battle.team2)
             db.session.add(battle)
             try:
                 db.session.commit()
@@ -80,7 +74,6 @@ class Battles(Resource):
                 schemas.BattleAPISchema().dump(battle).data
             ], eta=battle.start_time)
         print('delayed broadcast_battle')
-        print(battle.location)
         return battle
 
 
@@ -122,6 +115,38 @@ class BattleByID(Resource):
         return None
 
 
+@ns.route('/<int:battle_id>/location')
+class Location(Resource):
+    @ns.resolve_object_by_model(Battle, 'battle')
+    @ns.response(schemas.LocationSchema())
+    def get(self, battle):
+        """
+        Get battle location.
+        """
+        return battle.location
+
+    @ns.parameters(parameters.LocationParameters(), locations=('json',))
+    #@ns.expect(parameters.LocationParameters, validate=True)
+    @ns.resolve_object_by_model(Battle, 'battle')
+    @ns.response(schemas.LocationSchema())
+    def put(self, location_data, battle):
+        """
+        Set battle location.
+        """
+        try:
+            try:
+                battle.location = CompositeLocation(**location_data)
+            except ValueError as exception:
+                abort(code=http_exceptions.Conflict.code, message=str(exception))
+            try:
+                db.session.commit()
+            except sqlalchemy.exc.IntegrityError as exception:
+                abort(code=http_exceptions.Conflict.code, message="Could not set the location." + str(exception))
+        finally:
+            db.session.rollback()
+        return battle.location
+
+
 @ns.hide
 @ns.route('/<int:battle_id>/outcome')
 class Outcome(Resource):
@@ -142,37 +167,6 @@ class Outcome(Resource):
         battle.winner = winner
         db.session.commit()
         return winner
-
-
-@ns.route('/<int:battle_id>/location')
-class Location(Resource):
-    @ns.resolve_object_by_model(Battle, 'battle')
-    @ns.response(schemas.LocationSchema())
-    def get(self, battle):
-        """
-        Get battle location.
-        """
-        return battle.location
-
-    @ns.resolve_object_by_model(Battle, 'battle')
-    @ns.expect(parameters.LocationParameters, validate=True)
-    @ns.response(schemas.LocationSchema())
-    def put(self, battle):
-        """
-        Set battle location.
-        """
-        try:
-            try:
-                battle.location = CompositeLocation(**api.payload)
-            except ValueError as exception:
-                abort(code=http_exceptions.Conflict.code, message=str(exception))
-            try:
-                db.session.commit()
-            except sqlalchemy.exc.IntegrityError as exception:
-                abort(code=http_exceptions.Conflict.code, message="Could not set the location." + str(exception))
-        finally:
-            db.session.rollback()
-        return location
 
 
 @ns.route('/<int:battle_id>/team<int:team_num>')

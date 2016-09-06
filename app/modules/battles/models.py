@@ -95,6 +95,10 @@ class Battle(db.Model, Timestamp):
         db.CheckConstraint('team1_id != team2_id', name='_team_cc'),
     )
 
+    __mapper_args__ = {
+        "order_by": start_time
+    }
+
     def __init__(self, *args, location=None, **kwargs):
         if location:
             self.location = Location(**location)

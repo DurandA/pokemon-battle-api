@@ -4,12 +4,14 @@ Input arguments (Parameters) for Trainer resources RESTful API
 -----------------------------------------------------------
 """
 from six import itervalues
+from marshmallow import validates, ValidationError
 from flask_marshmallow import base_fields
 from flask_restplus_patched import Parameters, PostFormParameters, PatchJSONParameters, fields
 
 from . import schemas, ns
 from .models import Trainer
 
+from iso3166 import countries
 
 # class CreateTrainerParameters(Parameters, schemas.BaseTrainerSchema):
 #
@@ -22,17 +24,32 @@ from .models import Trainer
 #         )
 
 
-# class CreateTrainerParameters(Parameters):
-#     name = fields.String(required=True)
-#     gender = fields.String(required=True, enum=['male', 'female'])
-#     country_code = fields.String(min_length=2, max_length=3)
+class CreateTrainerParameters(Parameters, schemas.BaseTrainerSchema):
+    # name = base_fields.String(required=True)
+    # gender = base_fields.String(required=True, enum=['male', 'female'])
+    # country_code = base_fields.String(min_length=2, max_length=3)
+    class Meta:
+        fields = (
+            Trainer.name.key,
+            Trainer.gender.key,
+            Trainer.country_code.key,
+        )
 
+    @validates('name')
+    def validate_name(self, data):
+        if data != data.strip():
+            raise ValidationError('Should not begin or end with whitespace!')
+        if len(data)<3:
+            raise ValidationError('Too short!')
+        if not data.istitle():
+            raise ValidationError('Should be titlecased!')
 
-CreateTrainerParameters = ns.model('Trainer', {
-    'name': fields.String(required=True, min_length=3),
-    'gender': fields.String(required=True, enum=['male', 'female']),
-    'country_code': fields.String(min_length=2, max_length=3),
-})
+    @validates('country_code')
+    def validate_country_code(self, data):
+        try:
+            countries.get(data)
+        except KeyError:
+            raise ValidationError('Should be an iso3166 country code!')
 
 
 class PatchTrainerDetailsParameters(PatchJSONParameters):

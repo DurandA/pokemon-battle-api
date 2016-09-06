@@ -8,8 +8,10 @@ from marshmallow import post_load
 from flask_marshmallow import base_fields
 from flask_restplus_patched import ModelSchema, Schema
 from marshmallow_sqlalchemy import property2field, field_for, fields
+from app.extensions.api import abort, http_exceptions
 
 from .models import Battle, Location, Team#, Point
+
 from app.modules.pokemons.schemas import BasePokemonSchema
 from app.modules.pokemons.models import Pokemon
 from app.modules.trainers.models import Trainer
@@ -143,8 +145,8 @@ class DetailedBattleSchema(BaseBattleSchema):
 
 
 class CreateTeamSchema(Schema):
-    trainer_id = base_fields.Integer(required=True),
-    pokemon_ids = base_fields.List(base_fields.Integer, required=True),
+    trainer_id = base_fields.Integer(required=True)
+    pokemon_ids = base_fields.List(base_fields.Integer(), required=True)
 
     class Meta:
         fields = (
@@ -154,18 +156,40 @@ class CreateTeamSchema(Schema):
 
 
 class CreateBattleSchema(Schema):
-    location = base_fields.Nested(LocationSchema)
-    team1 = base_fields.Nested(CreateTeamSchema, required=True)
-    team2 = base_fields.Nested(CreateTeamSchema, required=True)
+    """
+    Base battle schema exposes only the most general fields.
+    """
+
+    location = base_fields.Nested(LocationSchema, exclude=())
+    team1 = base_fields.Nested(CreateTeamSchema, exclude=(), required=True)
+    team2 = base_fields.Nested(CreateTeamSchema, exclude=(), required=True)
     start_time = base_fields.DateTime(required=True)
+
+    class Meta:
+        fields = (
+            'location',
+            'team1',
+            'team2',
+            'start_time',
+        )
 
     @post_load
     def make_battle(self, data):
-        print(data)
-        for tkey, t in [(tk, data.pop(tk)) for tk in ('team1', 'team2')]:
-            data[tkey] = team = Team(trainer_id=t["trainer_id"])
-            for pokemon_id in t['pokemon_ids']:
-                p = Pokemon.query.get(pokemon_id)
-                team.pokemons.append(p)
-
-        return Battle(**data)
+        try:
+            for tkey, t in [(tk, data.pop(tk)) for tk in ('team1', 'team2')]:
+                trainer_id = t["trainer_id"]
+                trainer = Trainer.query.get(trainer_id)
+                if trainer is None:
+                    abort(code=http_exceptions.UnprocessableEntity.code, message="Trainer %i does not exists." % trainer_id)
+                data[tkey] = team = Team(trainer=trainer)
+                for pokemon_id in t['pokemon_ids']:
+                    p = Pokemon.query.get(pokemon_id)
+                    if p is None:
+                        abort(code=http_exceptions.UnprocessableEntity.code, message="Pokemon %i does not exists." % pokemon_id)
+                    team.pokemons.append(p)
+            battle = Battle(**data)
+            if battle.team1.trainer == battle.team2.trainer:
+                abort(code=http_exceptions.UnprocessableEntity.code, message="Both teams can't have the same trainer.")
+            return battle
+        except ValueError as exception:
+            abort(code=http_exceptions.Conflict.code, message=str(exception))

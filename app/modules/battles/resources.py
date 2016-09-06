@@ -18,7 +18,7 @@ from app.extensions.api import Namespace, abort, http_exceptions, api_v1 as api
 from app.extensions.api.parameters import PaginationParameters
 
 from . import schemas, parameters, ns
-from .models import db, Battle, Team, Location
+from .models import db, Battle, Team, Location as CompositeLocation
 from app.tasks import broadcast_battle
 from app.modules.pokemons.models import Pokemon
 from app.modules.pokemons.schemas import BasePokemonSchema
@@ -163,12 +163,9 @@ class Location(Resource):
         """
         try:
             try:
-                location = Location(**api.payload)
-                battle.location = location# db.session.query(Location).get(location)
+                battle.location = CompositeLocation(**api.payload)
             except ValueError as exception:
                 abort(code=http_exceptions.Conflict.code, message=str(exception))
-            #db.session.add(location)
-            #db.session.add(battle)
             try:
                 db.session.commit()
             except sqlalchemy.exc.IntegrityError as exception:

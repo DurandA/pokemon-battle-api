@@ -39,7 +39,7 @@ def broadcast_battle(battle_id, battle):
                     if v['trainer'].lower() == trainer.lower():
                         trainer_id = v['trainer_id']
                 print('%s won!' % trainer)
-                print(battle)
                 r = requests.put("http://127.0.0.1:5000/api/v1/battles/{}/outcome".format(battle_id), json={"trainer_id": trainer_id})
+                print(r.text)
             time.sleep(1)
     return trainer

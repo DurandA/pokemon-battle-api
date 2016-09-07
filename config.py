@@ -28,11 +28,10 @@ class BaseConfig(object):
     }
 
     ENABLED_MODULES = (
-        'auth',
+        #'auth',
 
-        'users',
-        #'groups',
-        #'players',
+        #'users',
+        #'teams',
         'battles',
         'trainers',
         'pokemon_types',

@@ -12,7 +12,6 @@ import sqlalchemy
 from app.extensions import db
 from app.extensions.api import Namespace, abort, http_exceptions, api_v1 as api
 from app.extensions.api.parameters import PaginationParameters
-from app.modules.players.models import Player
 
 from . import parameters, schemas, ns
 from .models import Trainer#, TeamMember

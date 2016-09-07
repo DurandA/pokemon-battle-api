@@ -15,7 +15,7 @@ from app.extensions.api.parameters import PaginationParameters
 
 from . import parameters, schemas, ns
 from .models import Trainer#, TeamMember
-
+from app.modules.battles.models import Team
 
 log = logging.getLogger(__name__) # pylint: disable=invalid-name
 
@@ -93,10 +93,8 @@ class TrainerByID(Resource):
                         log.info("Trainer patching has ignored unknown operation %s", operation)
                 except ValueError as exception:
                     abort(code=http_exceptions.Conflict.code, message=str(exception))
-
-            db.session.merge(trainer)
-
             try:
+                db.session.merge(trainer)
                 db.session.commit()
             except sqlalchemy.exc.IntegrityError:
                 abort(
@@ -113,6 +111,12 @@ class TrainerByID(Resource):
         """
         Delete a trainer by ID.
         """
+        teams = db.session.query(Team).filter(Team.trainer.has(Trainer.id == trainer.id))
+        if teams.first() is not None:
+            abort(
+                code=http_exceptions.Forbidden.code,
+                message="Cannot delete a trainer involved in a battle."
+            )
         db.session.delete(trainer)
         try:
             db.session.commit()

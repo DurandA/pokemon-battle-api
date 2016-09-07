@@ -62,10 +62,7 @@ class PatchTrainerDetailsParameters(PatchJSONParameters):
         '/%s' % field for field in (
             Trainer.name.key,
             Trainer.gender.key,
+            Trainer.country_code.key,
         )
     )
-
-
-# class AddTeamMemberParameters(PostFormParameters):
-#     player_id = base_fields.Integer(required=True)
-#     is_leader = base_fields.Boolean(required=False)
+    

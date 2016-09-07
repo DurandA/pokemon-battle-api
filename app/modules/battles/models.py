@@ -61,7 +61,7 @@ class Team(db.Model):
     trainer_id = db.Column(db.Integer, db.ForeignKey('trainer.id'))
     trainer = db.relationship(
         'Trainer',
-        backref=db.backref('battles_membership', cascade='delete, delete-orphan')
+        backref=db.backref('battles_membership')
     )
     pokemons = db.relationship("Pokemon",
                     secondary=team_pokemon)
@@ -72,11 +72,11 @@ class Battle(db.Model, Timestamp):
     Battle database model.
     """
 
-    id = db.Column(db.Integer, primary_key=True) # pylint: disable=invalid-name
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True) # pylint: disable=invalid-name
 
-    team1_id = db.Column(db.Integer, db.ForeignKey('team.id'))
+    team1_id = db.Column(db.Integer, db.ForeignKey('team.id', ondelete='CASCADE'))
     team1 = db.relationship('Team', foreign_keys=[team1_id])
-    team2_id = db.Column(db.Integer, db.ForeignKey('team.id'))
+    team2_id = db.Column(db.Integer, db.ForeignKey('team.id', ondelete='CASCADE'))
     team2 = db.relationship('Team', foreign_keys=[team2_id])
     lat = db.Column(db.Float)
     lng = db.Column(db.Float)
@@ -93,6 +93,7 @@ class Battle(db.Model, Timestamp):
 
     __table_args__ = (
         db.CheckConstraint('team1_id != team2_id', name='_team_cc'),
+        {'sqlite_autoincrement': True}
     )
 
     __mapper_args__ = {

@@ -102,6 +102,11 @@ class BattleByID(Resource):
         """
         Delete a battle by ID.
         """
+        if battle.winner is not None:
+            abort(
+                code=http_exceptions.Forbidden.code,
+                message="Cannot delete a finished battle."
+            )
         db.session.delete(battle)
         try:
             db.session.commit()
@@ -133,6 +138,11 @@ class Location(Resource):
         """
         Set battle location.
         """
+        if battle.winner is not None:
+            abort(
+                code=http_exceptions.Forbidden.code,
+                message="Cannot edit a finished battle."
+            )
         try:
             try:
                 battle.location = CompositeLocation(**location_data)

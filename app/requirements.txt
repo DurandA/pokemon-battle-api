@@ -26,6 +26,8 @@ permission==0.4.1
 arrow==0.7.0
 eventlet==0.19.0
 celery==3.1.23
-flask-socketio==2.7.1
+Flask-SocketIO==2.7.1
 redis==2.10.5
 iso3166==0.7
+Flask-Limiter==0.9.3
+

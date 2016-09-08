@@ -3,9 +3,10 @@
 Pokemon types database models
 --------------------
 """
-from sqlalchemy_utils import types as column_types, Timestamp
-from sqlalchemy.ext.automap import automap_base
 from flask_sqlalchemy import BaseQuery
+from sqlalchemy.ext.automap import automap_base
+from sqlalchemy_utils import types as column_types
+from sqlalchemy_utils import Timestamp
 
 from app.extensions import db
 

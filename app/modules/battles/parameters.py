@@ -4,14 +4,15 @@ Input arguments (Parameters) for Battle resources RESTful API
 -----------------------------------------------------------
 """
 
-from marshmallow import validates, ValidationError
 from flask_marshmallow import base_fields
-from flask_restplus_patched import Parameters, PostFormParameters, PatchJSONParameters, fields, reqparse, Model
-
-from . import schemas, ns
-from .models import Battle
+from marshmallow import ValidationError, validates
 
 from app.extensions.api.parameters import PaginationParameters
+from flask_restplus_patched import (Model, Parameters, PatchJSONParameters,
+                                    PostFormParameters, fields, reqparse)
+
+from . import ns, schemas
+from .models import Battle
 
 
 class BattleParameters(PaginationParameters):

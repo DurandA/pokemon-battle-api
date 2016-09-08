@@ -4,20 +4,19 @@ Serialization schemas for Match resources RESTful API
 ----------------------------------------------------
 """
 
-from marshmallow import post_load
-from flask_marshmallow import base_fields
-from flask_restplus_patched import ModelSchema, Schema
-from marshmallow_sqlalchemy import property2field, field_for, fields
-from app.extensions.api import abort, http_exceptions
-
-from .models import Battle, Location, Team#, Point
-
-from app.modules.pokemons.schemas import BasePokemonSchema
-from app.modules.pokemons.models import Pokemon
-from app.modules.trainers.models import Trainer
-
-
 import datetime
+
+from flask_marshmallow import base_fields
+from marshmallow import post_load
+from marshmallow_sqlalchemy import field_for, fields, property2field
+
+from app.extensions.api import abort, http_exceptions
+from app.modules.pokemons.models import Pokemon
+from app.modules.pokemons.schemas import BasePokemonSchema
+from app.modules.trainers.models import Trainer
+from flask_restplus_patched import ModelSchema, Schema
+
+from .models import Battle, Location, Team  # , Point
 
 
 class LocationSchema(Schema):

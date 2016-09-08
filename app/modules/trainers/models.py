@@ -5,6 +5,7 @@ Team database models
 """
 
 from sqlalchemy_utils import Timestamp
+
 from app.extensions import db
 
 

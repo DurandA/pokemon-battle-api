@@ -7,24 +7,29 @@ RESTful API Battle resources
 
 import logging
 
+#from flask_sockets import Sockets
+import sqlalchemy
 from flask import Blueprint
 from flask_login import current_user
 from flask_restplus import Resource
-#from flask_sockets import Sockets
-import sqlalchemy
-#from flask_socketio import emit
 
-from app.extensions.api import Namespace, abort, http_exceptions, api_v1 as api
-from app.extensions.api.parameters import PaginationParameters
 from app.extensions import limiter
-
-from . import schemas, parameters, ns
-from .models import db, Battle, Team, Location as CompositeLocation
-from app.tasks import broadcast_battle
+from app.extensions.api import api_v1 as api
+from app.extensions.api import Namespace, abort, http_exceptions
+from app.extensions.api.parameters import PaginationParameters
 from app.modules.pokemons.models import Pokemon
 from app.modules.pokemons.schemas import BasePokemonSchema
 from app.modules.trainers.models import Trainer
 from app.modules.trainers.schemas import DetailedTrainerSchema
+from app.tasks import broadcast_battle
+
+from . import ns, parameters, schemas
+from .models import Location as CompositeLocation
+from .models import Battle, Team, db
+
+#from flask_socketio import emit
+
+
 
 
 log = logging.getLogger(__name__)

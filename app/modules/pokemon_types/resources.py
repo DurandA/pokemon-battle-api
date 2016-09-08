@@ -7,16 +7,15 @@ RESTful API Sport resources
 
 import logging
 
+import sqlalchemy
 from flask_login import current_user
 from flask_restplus import Resource
-import sqlalchemy
 
 from app.extensions.api import Namespace, abort, http_exceptions
 from app.extensions.api.parameters import PaginationParameters
 
 from . import schemas
 from .models import PokemonType
-
 
 log = logging.getLogger(__name__)
 api = Namespace('pokemon-types', description="Pokemon Types")

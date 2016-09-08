@@ -7,17 +7,16 @@ RESTful API Pokemon resources
 
 import logging
 
+import sqlalchemy
 from flask_login import current_user
 from flask_restplus import Resource
-import sqlalchemy
 
 from app.extensions import db
 from app.extensions.api import Namespace, abort, http_exceptions
 from app.extensions.api.parameters import PaginationParameters
 
 from . import parameters, schemas
-from .models import Pokemon#, PokemonType
-
+from .models import Pokemon  # , PokemonType
 
 log = logging.getLogger(__name__)
 api = Namespace('pokemons', description="Pokemons")

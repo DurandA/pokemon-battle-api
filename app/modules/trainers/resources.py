@@ -6,17 +6,17 @@ RESTful API Trainer resources
 
 import logging
 
-from flask_restplus import Resource
 import sqlalchemy
+from flask_restplus import Resource
 
-from app.extensions import db
-from app.extensions.api import Namespace, abort, http_exceptions, api_v1 as api
+from app.extensions import db, limiter
+from app.extensions.api import api_v1 as api
+from app.extensions.api import Namespace, abort, http_exceptions
 from app.extensions.api.parameters import PaginationParameters
-from app.extensions import limiter
-
-from . import parameters, schemas, ns
-from .models import Trainer#, TeamMember
 from app.modules.battles.models import Team
+
+from . import ns, parameters, schemas
+from .models import Trainer  # , TeamMember
 
 log = logging.getLogger(__name__) # pylint: disable=invalid-name
 

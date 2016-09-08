@@ -3,13 +3,13 @@
 Player database models
 --------------------
 """
-from sqlalchemy_utils import types as column_types, Timestamp
-from sqlalchemy.ext.automap import automap_base
 from flask_sqlalchemy import BaseQuery
+from sqlalchemy.ext.automap import automap_base
+from sqlalchemy_utils import types as column_types
+from sqlalchemy_utils import Timestamp
 
 from app.extensions import db
 from app.modules.pokemon_types.models import PokemonType
-
 
 types = db.Table('pokemon_types', db.metadata,
     db.Column('pokemon_id', db.Integer, db.ForeignKey('pokemon.id')),

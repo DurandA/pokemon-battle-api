@@ -1,9 +1,8 @@
+from flask_marshmallow import base_fields
 from marshmallow import validate
 
-from flask_marshmallow import base_fields
-from flask_restplus_patched import Parameters
-
 from app.extensions.api.parameters import PaginationParameters
+from flask_restplus_patched import Parameters
 
 
 class PokemonsParameters(PaginationParameters):

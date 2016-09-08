@@ -5,11 +5,11 @@ Serialization schemas for Team resources RESTful API
 """
 
 from flask_marshmallow import base_fields
-from flask_restplus_patched import ModelSchema
 
 from app.modules.users.schemas import BaseUserSchema
+from flask_restplus_patched import ModelSchema
 
-from .models import Trainer#, TeamMember
+from .models import Trainer  # , TeamMember
 
 
 class BaseTrainerSchema(ModelSchema):

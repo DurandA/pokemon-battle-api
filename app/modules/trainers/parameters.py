@@ -3,15 +3,17 @@
 Input arguments (Parameters) for Trainer resources RESTful API
 -----------------------------------------------------------
 """
-from six import itervalues
-from marshmallow import validates, ValidationError
 from flask_marshmallow import base_fields
-from flask_restplus_patched import Parameters, PostFormParameters, PatchJSONParameters, fields
+from iso3166 import countries
+from marshmallow import ValidationError, validates
+from six import itervalues
 
-from . import schemas, ns
+from flask_restplus_patched import (Parameters, PatchJSONParameters,
+                                    PostFormParameters, fields)
+
+from . import ns, schemas
 from .models import Trainer
 
-from iso3166 import countries
 
 # class CreateTrainerParameters(Parameters, schemas.BaseTrainerSchema):
 #
@@ -65,4 +67,3 @@ class PatchTrainerDetailsParameters(PatchJSONParameters):
             Trainer.country_code.key,
         )
     )
-    

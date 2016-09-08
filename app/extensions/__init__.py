@@ -29,7 +29,6 @@ from celery import Celery
 celery = Celery(__name__, broker='redis://')
 
 from flask_socketio import SocketIO
-socketio = SocketIO(async_mode='eventlet', message_queue='redis://')
 
 from . import api
 
@@ -60,8 +59,10 @@ def init_app(app):
             marshmallow,
             api,
             oauth2,
-            socketio,
+            #socketio,
     ):
         extension.init_app(app)
 
+    socketio = SocketIO(app, async_mode='eventlet', message_queue='redis://')
+    #socketio.init_app(app)
     app.extensions['migrate'] = AlembicDatabaseMigrationConfig(db, compare_type=True)

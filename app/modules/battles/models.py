@@ -10,8 +10,8 @@ from sqlalchemy_utils import types as column_types
 from sqlalchemy_utils import Timestamp
 
 from app.extensions import db
-from app.modules.pokemons.models import Pokemon
 from app.modules.trainers.models import Trainer
+from app.modules.pokemons.models import Pokemon
 
 
 class Location(object):

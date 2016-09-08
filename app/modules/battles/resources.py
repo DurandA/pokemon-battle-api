@@ -170,7 +170,7 @@ class Outcome(Resource):
         Set a battle winner.
         """
         #args = parameters.outcome_parser.parse_args()
-        winner = db.session.query(Team).filter(
+        winner = Team.query.filter(
             Team.trainer.has(Trainer.id == args['trainer_id']), Team.battle.contains(battle)
         ).first_or_404()
 

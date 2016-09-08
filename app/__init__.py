@@ -33,7 +33,7 @@ def create_app(flask_config='production', **kwargs):
         # latter set up colorful loggers.
         for handler in app.logger.handlers:
             app.logger.removeHandler(handler)
-    
+
     from . import extensions
     extensions.init_app(app)
 

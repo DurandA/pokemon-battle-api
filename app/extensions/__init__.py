@@ -30,6 +30,10 @@ celery = Celery(__name__, broker='redis://')
 
 from flask_socketio import SocketIO
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+limiter = Limiter(key_func=get_remote_address)
+
 from . import api
 
 from .auth import OAuth2Provider
@@ -60,6 +64,7 @@ def init_app(app):
             api,
             oauth2,
             #socketio,
+            limiter,
     ):
         extension.init_app(app)
 

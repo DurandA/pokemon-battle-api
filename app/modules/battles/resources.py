@@ -16,6 +16,7 @@ import sqlalchemy
 
 from app.extensions.api import Namespace, abort, http_exceptions, api_v1 as api
 from app.extensions.api.parameters import PaginationParameters
+from app.extensions import limiter
 
 from . import schemas, parameters, ns
 from .models import db, Battle, Team, Location as CompositeLocation
@@ -34,6 +35,7 @@ class Battles(Resource):
     """
     Manipulations with battles.
     """
+    decorators = [limiter.limit("1/minute;10/hour", methods=('post',))]
 
     @ns.parameters(parameters.BattleParameters())
     @ns.response(schemas.BaseBattleSchema(many=True))

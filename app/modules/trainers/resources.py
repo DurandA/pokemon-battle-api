@@ -12,6 +12,7 @@ import sqlalchemy
 from app.extensions import db
 from app.extensions.api import Namespace, abort, http_exceptions, api_v1 as api
 from app.extensions.api.parameters import PaginationParameters
+from app.extensions import limiter
 
 from . import parameters, schemas, ns
 from .models import Trainer#, TeamMember
@@ -25,6 +26,7 @@ class Trainers(Resource):
     """
     Manipulations with trainers.
     """
+    decorators = [limiter.limit("1/minute;10/hour", methods=('post',))]
 
     @ns.parameters(PaginationParameters())
     @ns.response(schemas.BaseTrainerSchema(many=True))
@@ -93,6 +95,7 @@ class TrainerByID(Resource):
                         log.info("Trainer patching has ignored unknown operation %s", operation)
                 except ValueError as exception:
                     abort(code=http_exceptions.Conflict.code, message=str(exception))
+
             try:
                 db.session.merge(trainer)
                 db.session.commit()

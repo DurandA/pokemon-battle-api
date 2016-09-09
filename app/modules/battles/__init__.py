@@ -15,18 +15,10 @@ def init_app(app, **kwargs):
     """
     Init battles module.
     """
-    #socketio = app.extensions['socketio']
 
     # Touch underlying modules
     from . import models, resources
-    #socketio = SocketIO(app, async_mode='eventlet', message_queue='redis://')
-    #
-    # @socketio.on('message', namespace='/test')
-    # def echo(message):
-    #     emit('message', message)
-    #
-    # socketio.on_event('echo', websockets.async_test, namespace='/test')
-    print ('asdf')
+
     api_v1.add_namespace(ns)
     #sockets = Sockets(app)
     #sockets.register_blueprint(resources.ws)

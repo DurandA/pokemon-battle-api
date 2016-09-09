@@ -1,5 +1,6 @@
 # pylint: disable=too-few-public-methods,invalid-name,missing-docstring
 import os
+from datetime import timedelta
 
 
 class BaseConfig(object):

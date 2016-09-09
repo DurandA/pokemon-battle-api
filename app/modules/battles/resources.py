@@ -9,7 +9,7 @@ import logging
 
 #from flask_sockets import Sockets
 import sqlalchemy
-from flask import Blueprint
+from flask import Blueprint, request
 from flask_login import current_user
 from flask_restplus import Resource
 
@@ -29,9 +29,6 @@ from .models import Battle, Team, db
 
 #from flask_socketio import emit
 
-
-
-
 log = logging.getLogger(__name__)
 
 
@@ -40,7 +37,7 @@ class Battles(Resource):
     """
     Manipulations with battles.
     """
-    decorators = [limiter.limit("1/minute;10/hour", methods=('post',), per_method=True)]
+    decorators = [limiter.limit("5/minute;50/hour", exempt_when=lambda: 'localhost' in request.headers['Host'], methods=('post',), per_method=True, error_message='Enhance your calm.')]
 
     @ns.parameters(parameters.BattleParameters())
     @ns.response(schemas.BaseBattleSchema(many=True))
@@ -52,7 +49,6 @@ class Battles(Resource):
         parameter.
         """
         q = Battle.query
-        print(args)
         if 'is_finished' in args:
             if args['is_finished']:
                 q = q.filter(Battle.winner_id != None)

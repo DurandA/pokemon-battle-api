@@ -29,10 +29,11 @@ from celery import Celery
 celery = Celery(__name__, broker='redis://')
 
 from flask_socketio import SocketIO
+socketio = SocketIO()
 
 from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-limiter = Limiter(key_func=get_remote_address)
+from flask_limiter.util import get_remote_address, get_ipaddr
+limiter = Limiter(key_func=get_ipaddr, storage_uri ="redis://", strategy="moving-window")
 
 from . import api
 
@@ -68,6 +69,6 @@ def init_app(app):
     ):
         extension.init_app(app)
 
-    socketio = SocketIO(app, async_mode='eventlet', message_queue='redis://')
-    #socketio.init_app(app)
+    #celery.conf.update(CELERYBEAT_SCHEDULE = app.config['CELERYBEAT_SCHEDULE'])
+    socketio.init_app(app, async_mode='eventlet', message_queue='redis://')
     app.extensions['migrate'] = AlembicDatabaseMigrationConfig(db, compare_type=True)

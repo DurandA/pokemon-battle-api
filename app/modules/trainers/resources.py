@@ -7,6 +7,7 @@ RESTful API Trainer resources
 import logging
 
 import sqlalchemy
+from flask import request
 from flask_restplus import Resource
 
 from app.extensions import db, limiter
@@ -26,7 +27,7 @@ class Trainers(Resource):
     """
     Manipulations with trainers.
     """
-    decorators = [limiter.limit("1/minute;10/hour", methods=('post',), per_method=True)]
+    decorators = [limiter.limit("5/minute;50/hour", exempt_when=lambda: 'localhost' in request.headers['Host'], methods=('post',), per_method=True, error_message='Enhance your calm.')]
 
     @ns.parameters(PaginationParameters())
     @ns.response(schemas.BaseTrainerSchema(many=True))
@@ -88,6 +89,7 @@ class TrainerByID(Resource):
         """
         Patch trainer details by ID.
         """
+        self._abort_readonly(trainer.id)
         try:
             for operation in args:
                 try:
@@ -114,6 +116,7 @@ class TrainerByID(Resource):
         """
         Delete a trainer by ID.
         """
+        self._abort_readonly(trainer.id)
         teams = db.session.query(Team).filter(Team.trainer.has(Trainer.id == trainer.id))
         if teams.first() is not None:
             abort(
@@ -155,3 +158,10 @@ class TrainerByID(Resource):
             return True
 
         return False
+
+    def _abort_readonly(self, trainer_id):
+        if trainer_id<=15:
+            abort(
+                code=http_exceptions.Forbidden.code,
+                message="This trainer is read-only."
+            )

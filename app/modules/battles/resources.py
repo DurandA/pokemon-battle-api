@@ -40,7 +40,7 @@ class Battles(Resource):
     """
     Manipulations with battles.
     """
-    decorators = [limiter.limit("1/minute;10/hour", methods=('post',))]
+    decorators = [limiter.limit("1/minute;10/hour", methods=('post',), per_method=True)]
 
     @ns.parameters(parameters.BattleParameters())
     @ns.response(schemas.BaseBattleSchema(many=True))

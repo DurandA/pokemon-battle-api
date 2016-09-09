@@ -26,7 +26,7 @@ class Trainers(Resource):
     """
     Manipulations with trainers.
     """
-    decorators = [limiter.limit("1/minute;10/hour", methods=('post',))]
+    decorators = [limiter.limit("1/minute;10/hour", methods=('post',), per_method=True)]
 
     @ns.parameters(PaginationParameters())
     @ns.response(schemas.BaseTrainerSchema(many=True))

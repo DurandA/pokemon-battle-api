@@ -1,7 +1,5 @@
 import requests
 
-url = 'http://127.0.0.1:5000/api/v1/trainers/'
-
 trainers = [
     {"country_code":"JPN","gender":"male","name":"Ash Ketchum"},
     {"country_code":"JPN","gender":"female","name":"Serena"},
@@ -21,5 +19,5 @@ trainers = [
 ]
 
 for trainer in trainers:
-    r = requests.post('http://127.0.0.1:5000/api/v1/trainers/', json=trainer)
+    r = requests.post('http://localhost:8080/api/v1/trainers/', json=trainer)
     print(r.status_code)

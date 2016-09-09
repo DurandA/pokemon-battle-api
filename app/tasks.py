@@ -33,7 +33,7 @@ def broadcast_battle(battle_id, battle):
                     if v['trainer'].lower() == trainer.lower():
                         trainer_id = v['trainer_id']
                 print('%s won!' % trainer)
-                r = requests.put("http://localhost:5000/api/v1/battles/{}/outcome".format(battle_id), json={'trainer_id': trainer_id})
+                r = requests.put("http://localhost:8080/api/v1/battles/{}/outcome".format(battle_id), json={'trainer_id': trainer_id})
             time.sleep(3.5)
     return r.text
 
@@ -90,5 +90,5 @@ def make_random_battle():
         battle[tkey]['pokemon_ids'] = random.sample(pokemon_ids, pokemons)
 
     print(battle)
-    r = requests.post("http://localhost:5000/api/v1/battles/", json=battle)
+    r = requests.post("http://localhost:8080/api/v1/battles/", json=battle)
     return r.text

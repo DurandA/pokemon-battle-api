@@ -1,10 +1,4 @@
-[![Build Status](https://travis-ci.org/frol/flask-restplus-server-example.svg)](https://travis-ci.org/frol/flask-restplus-server-example)
-[![Coverage Status](https://coveralls.io/repos/frol/flask-restplus-server-example/badge.svg?branch=master&service=github)](https://coveralls.io/github/frol/flask-restplus-server-example?branch=master)
-[![Codacy Coverage Status](https://api.codacy.com/project/badge/coverage/b0fc91ce77d3437ea5f107c4b7ccfa26)](https://www.codacy.com/app/frolvlad/flask-restplus-server-example)
-[![Codacy Quality Status](https://api.codacy.com/project/badge/grade/b0fc91ce77d3437ea5f107c4b7ccfa26)](https://www.codacy.com/app/frolvlad/flask-restplus-server-example)
-
-
-RESTful API Server Example
+Pokemon Battle API
 ==========================
 
 This project showcases my vision on how the RESTful API server should be
@@ -27,7 +21,7 @@ handle Marshmallow schemas and Webargs arguments.
 
 Here is how it looks at this point of time:
 
-![Flask RESTplus Example API](https://raw.githubusercontent.com/frol/flask-restplus-server-example/master/docs/static/Flask_RESTplus_Example_API.png)
+![Pokemon Battle API](docs/static/Pokemon_Battle_API.png)
 
 
 Project Structure
@@ -261,6 +255,70 @@ so go ahead and turn the server ON! (Read more details on this in Tips section)
 
 ```bash
 $ invoke app.run
+```
+
+
+Deployment
+------------
+
+### Setup www-data user
+
+Create www-data user
+```
+sudo useradd -d /var/www -G www-data www-data
+```
+Make sure nobody can access `/var/www`
+```
+sudo chmod o-rwx /var/www
+```
+
+### Setup iptables
+
+Redirect port 443 to 8443 so the server can be executed as non-root.
+```
+sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
+```
+iptables must be saved in order to be loaded on reboot with `sudo apt-get install iptables-persistent`.
+
+After it's installed, you can save/reload iptables rules anytime:
+```
+sudo /etc/init.d/iptables-persistent save
+sudo /etc/init.d/iptables-persistent reload
+```
+
+### Install redis
+
+Follow [DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-redis) tutorial.
+
+### Install nodejs
+
+Follow [DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-ubuntu-16-04) tutorial.
+
+### Server process monitoring
+
+Install supervisord
+```
+sudo apt-get install supervisor
+```
+
+Add file `/etc/supervisor/conf.d/pokemon-battle-api.conf` containing
+```
+[program:pokemon-battle-api]
+user=duranda
+command=/home/duranda/pokemon-battle-api/venv/bin/invoke app.run -h 0.0.0.0 -p 8080
+environment=PATH="/home/duranda/pokemon-battle-api/venv/bin"
+directory=/home/duranda/pokemon-battle-api/
+
+[program:celery]
+user=duranda
+command=/home/duranda/pokemon-battle-api/venv/bin/celery -A app.tasks worker --beat --loglevel=info
+environment=PATH="/home/duranda/pokemon-battle-api/venv/bin"
+directory=/home/duranda/pokemon-battle-api/
+```
+
+Reload configuration
+```
+sudo service supervisor restart
 ```
 
 

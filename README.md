@@ -314,6 +314,14 @@ user=duranda
 command=/home/duranda/pokemon-battle-api/venv/bin/celery -A app.tasks worker --beat --loglevel=info
 environment=PATH="/home/duranda/pokemon-battle-api/venv/bin"
 directory=/home/duranda/pokemon-battle-api/
+
+[program:pokemon-battle-demo]
+user=duranda
+command=node index.js
+autostart=true
+autorestart=true
+environment=PORT=4000  
+directory=/home/duranda/pokemon-battle-demo/
 ```
 
 Reload configuration

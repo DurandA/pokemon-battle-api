@@ -5,7 +5,7 @@ Input arguments (Parameters) for Trainer resources RESTful API
 """
 from flask_marshmallow import base_fields
 from iso3166 import countries
-from marshmallow import ValidationError, validates
+from marshmallow import ValidationError, validates, validates_schema
 from six import itervalues
 
 from flask_restplus_patched import (Parameters, PatchJSONParameters,
@@ -13,17 +13,6 @@ from flask_restplus_patched import (Parameters, PatchJSONParameters,
 
 from . import ns, schemas
 from .models import Trainer
-
-
-# class CreateTrainerParameters(Parameters, schemas.BaseTrainerSchema):
-#
-#
-#     class Meta(schemas.BaseTrainerSchema.Meta):
-#         # This is not supported yet: https://github.com/marshmallow-code/marshmallow/issues/344
-#         required = (
-#             Trainer.name.key,
-#             Trainer.gender.key,
-#         )
 
 
 class CreateTrainerParameters(Parameters, schemas.BaseTrainerSchema):
@@ -67,3 +56,21 @@ class PatchTrainerDetailsParameters(PatchJSONParameters):
             Trainer.country_code.key,
         )
     )
+
+    @validates_schema
+    def validate_schema(self, data):
+        if data['op'] == 'replace':
+            if data['path'] == '/name':
+                CreateTrainerParameters.validate_name(self, data['value'])
+                # if data['value'] != data['value'].strip():
+                #     raise ValidationError('Should not begin or end with whitespace!')
+                # if len(data['value'])<3:
+                #     raise ValidationError('Too short!')
+                # if not data['value'].istitle():
+                #     raise ValidationError('Should be titlecased!')
+            elif data['path'] == '/country_code':
+                CreateTrainerParameters.validate_country_code(self, data['value'])
+                # try:
+                #     countries.get(data['value'])
+                # except KeyError:
+                #     raise ValidationError('Should be an iso3166 country code!')

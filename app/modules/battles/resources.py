@@ -97,7 +97,7 @@ class BattleByID(Resource):
         Get battle details by ID.
 
         You can follow the battle in live and see the various attacks/moves, damages and HP using Socket.IO/websockets.
-        Consume it using a Socket.IO library (http://socket.io/) and point to namsepace ``battles/{battle_id}`` (``ws://example.com/battles/{battle_id}`` url) before a battle.
+        Consume it using a Socket.IO library (http://socket.io/) and point to namsepace ``battles/{battle_id}`` (``ws://pokemon-battle.bid/battles/{battle_id}`` url) before a battle.
         Battle events are emited on the default ``message`` event.
         Note that live battles on websockets uses the Engine.IO protocol so you can't consume it using raw websockets.
         Try first using: http://amritb.github.io/socketio-client-tool/

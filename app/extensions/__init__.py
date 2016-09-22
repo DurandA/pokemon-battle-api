@@ -9,6 +9,7 @@ Extensions provide access to common resources of the application.
 Please, put new extension instantiations and initializations here.
 """
 
+from datetime import timedelta
 from flask_cors import CORS
 cross_origin_resource_sharing = CORS()
 
@@ -27,6 +28,17 @@ marshmallow = Marshmallow()
 
 from celery import Celery
 celery = Celery(__name__, broker='redis://')
+celery.conf.update(
+    #CELERY_ENABLE_UTC = True,
+    #BROKER_TRANSPORT_OPTIONS = {'fanout_patterns': True},
+    #CELERY_TIMEZONE = 'Europe/Zurich',
+    CELERYBEAT_SCHEDULE = {
+        'make_random_battle': {
+            'task': 'app.tasks.make_random_battle',
+            'schedule': timedelta(minutes=10),
+        }
+    }
+)
 
 from flask_socketio import SocketIO
 socketio = SocketIO()
@@ -69,6 +81,5 @@ def init_app(app):
     ):
         extension.init_app(app)
 
-    #celery.conf.update(CELERYBEAT_SCHEDULE = app.config['CELERYBEAT_SCHEDULE'])
     socketio.init_app(app, async_mode='eventlet', message_queue='redis://')
     app.extensions['migrate'] = AlembicDatabaseMigrationConfig(db, compare_type=True)

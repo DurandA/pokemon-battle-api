@@ -26,19 +26,19 @@ login_manager = LoginManager()
 from flask_marshmallow import Marshmallow
 marshmallow = Marshmallow()
 
-from celery import Celery
-celery = Celery(__name__, broker='redis://')
-celery.conf.update(
-    #CELERY_ENABLE_UTC = True,
-    #BROKER_TRANSPORT_OPTIONS = {'fanout_patterns': True},
-    #CELERY_TIMEZONE = 'Europe/Zurich',
-    CELERYBEAT_SCHEDULE = {
-        'make_random_battle': {
-            'task': 'app.tasks.make_random_battle',
-            'schedule': timedelta(minutes=10),
-        }
-    }
-)
+# from celery import Celery
+# celery = Celery(__name__, broker='redis://')
+# celery.conf.update(
+#     #CELERY_ENABLE_UTC = True,
+#     #BROKER_TRANSPORT_OPTIONS = {'fanout_patterns': True},
+#     #CELERY_TIMEZONE = 'Europe/Zurich',
+#     CELERYBEAT_SCHEDULE = {
+#         'make_random_battle': {
+#             'task': 'app.tasks.make_random_battle',
+#             'schedule': timedelta(minutes=10),
+#         }
+#     }
+# )
 
 from flask_socketio import SocketIO
 socketio = SocketIO()

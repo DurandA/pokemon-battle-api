@@ -72,10 +72,10 @@ class Battles(Resource):
                 abort(code=http_exceptions.Conflict.code, message="Could not create a new battle.")
         finally:
             db.session.rollback()
-        broadcast_battle.apply_async(args=[
+        broadcast_battle.schedule(args=(
                 battle.id,
                 schemas.BattleAPISchema().dump(battle).data
-            ], eta=battle.start_time)
+            ), eta=battle.start_time)
         print('delayed broadcast_battle')
         return battle
 

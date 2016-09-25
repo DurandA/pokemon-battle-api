@@ -16,7 +16,7 @@ from .models import Battle
 
 
 class BattleParameters(PaginationParameters):
-    is_finished = base_fields.Boolean(required=False)
+    is_finished = base_fields.Boolean(required=False, allow_none=True, default=False)
 
 
 class TeamNumParameters(PostFormParameters):

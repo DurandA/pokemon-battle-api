@@ -309,9 +309,9 @@ command=/home/duranda/pokemon-battle-api/venv/bin/invoke app.run -h 0.0.0.0 -p 8
 environment=PATH="/home/duranda/pokemon-battle-api/venv/bin"
 directory=/home/duranda/pokemon-battle-api/
 
-[program:celery]
+[program:huey]
 user=duranda
-command=/home/duranda/pokemon-battle-api/venv/bin/celery -A app.tasks worker --beat --loglevel=info
+command=/home/duranda/pokemon-battle-api/venv/bin/huey_consumer.py app.tasks.huey -k process -w 4
 environment=PATH="/home/duranda/pokemon-battle-api/venv/bin"
 directory=/home/duranda/pokemon-battle-api/
 

@@ -111,6 +111,7 @@ class BattleByID(Resource):
         #battle = Battle.query.options(db.joinedload('team1')).get_or_404(battle.id)
         return battle
 
+    @ns.doc(False)
     @ns.resolve_object_by_model(Battle, 'battle')
     @ns.response(code=http_exceptions.Conflict.code)
     def delete(self, battle):

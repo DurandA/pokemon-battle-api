@@ -49,6 +49,12 @@ class Battles(Resource):
         parameter.
         """
         q = Battle.query
+        if 'trainer_id' in args:
+            teams = Team.query.filter(Team.trainer.has(Trainer.id == args['trainer_id']))
+            #q = q.filter(Battle.team1.in_(teams) | Battle.team2.in_(teams))
+            # raise NotImplementedError: in_() not yet supported for relationships.
+            q = db.session.query(Battle).filter(Battle.team1.has(Team.trainer.has(Trainer.id == args['trainer_id'])) |
+                Battle.team2.has(Team.trainer.has(Trainer.id == args['trainer_id'])))
         if 'is_finished' in args:
             if args['is_finished']:
                 q = q.filter(Battle.winner_id != None)

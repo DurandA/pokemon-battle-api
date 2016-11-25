@@ -17,7 +17,7 @@ from .models import Battle
 
 class BattleParameters(PaginationParameters):
     is_finished = base_fields.Boolean(required=False, allow_none=True, default=False)
-
+    trainer_id = base_fields.Integer(description="trainer ID", required=False)
 
 class TeamNumParameters(PostFormParameters):
     team_num = base_fields.Integer(description="[1-2] (one of both teams)", required=True, location='header')

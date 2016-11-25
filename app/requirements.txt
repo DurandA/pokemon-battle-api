@@ -30,4 +30,4 @@ Flask-SocketIO==2.7.1
 redis==2.10.5
 iso3166==0.7
 Flask-Limiter==0.9.3
-
+huey==1.2.2
